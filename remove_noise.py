@@ -1,5 +1,6 @@
-import sys, os
+import cv2 as cv2
 from PIL import Image, ImageDraw
+
 
 
 # 二值判断,如果确认是噪声,用改点的上面一个点的灰度进行替换
@@ -12,6 +13,7 @@ def getPixel(image, x, y, G, N):
         L = False
 
     nearDots = 0
+
     if L == (image.getpixel((x - 1, y - 1)) > G):
         nearDots += 1
     if L == (image.getpixel((x - 1, y)) > G):
@@ -58,14 +60,22 @@ def clearNoise(image, G, N, Z):
 
 
 def main():
-    # 打开图片
-    image = Image.open("images/6100_2_4_pred_float.jpg")
+    input_path = '../images/msk_prd_2.tif'
+    output_path = '../images/msk_prd_remove_noise.tif'
 
+    # 打开图片
+    image = Image.open(input_path)
+    print(image)
     # 去噪,G = 50,N = 4,Z = 4
-    clearNoise(image, 50, 4, 4)
+    clearNoise(image, 50, 4, 1)
 
     # 保存图片
-    image.save("images/result.jpg")
+    image.save(output_path)
+    # img = cv2.imread(input_path)
+    # # img2 = img[:,np.newaxis]
+    #
+    # dst = cv2.fastNlMeansDenoising(img, h=0, templateWindowSize=7, searchWindowSize=21)
+    # cv2.imwrite(output_path, dst)
 
 
 if __name__ == '__main__':

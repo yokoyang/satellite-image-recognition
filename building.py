@@ -1,39 +1,21 @@
-import pandas as pd
-import numpy as np
 import os
 import random
-import matplotlib.pyplot as plt
-from keras.preprocessing.image import ImageDataGenerator
-from keras.models import Model
-from keras.layers import concatenate, Conv2D, Input, merge, Convolution2D, MaxPooling2D, UpSampling2D, Cropping2D
-from keras.optimizers import Adam, Adamax, Nadam, Adadelta, SGD, RMSprop
-from keras.callbacks import ModelCheckpoint, LearningRateScheduler
-from keras import backend as K
-from keras.utils.io_utils import HDF5Matrix
-import h5py
-import keras
 
-from keras.layers.normalization import BatchNormalization
-from sklearn.metrics import jaccard_similarity_score
-from sklearn.model_selection import train_test_split
-import pandas as pd
 import cv2
-import shapely.wkt
-import shapely.affinity
-from shapely.geometry import MultiPolygon, Polygon
-from collections import defaultdict
-from shapely.wkt import loads as wkt_loads
+import keras
+import numpy as np
+import pandas as pd
+import tifffile as tiff
+from keras import backend as K
 from keras.backend import binary_crossentropy
-import tensorflow as tf
+from keras.callbacks import ModelCheckpoint
+from keras.layers import concatenate, Conv2D, Input, MaxPooling2D, UpSampling2D, Cropping2D
+from keras.layers.normalization import BatchNormalization
+from keras.models import Model
+from keras.optimizers import Nadam
+from sklearn.model_selection import train_test_split
 
-
-config = tf.ConfigProto()
-print(config.gpu_options.allow_growth)
-config.gpu_options.allow_growth = True
-sess = tf.Session(config=config)
-keras.backend.set_session(sess)
-
-Dir = '/home/yokoyang/PycharmProjects/untitled/biaozhu'
+Dir = '/home/yokoyang/PycharmProjects/untitled/896_biaozhu'
 
 train_img = pd.read_csv(Dir + '/data_imageID.csv')
 
@@ -46,16 +28,16 @@ Patch_size = 192
 crop_size = 224
 edge_size = int((crop_size - Patch_size) / 2)
 Class_Type = 1
-# 1200 = 300 * 4
-# size = 1024
+
 Scale_Size = Patch_size * N_split
-get_size = 80
+get_size = 121
+# get_size = 91
 
 
 def get_mask(image_id):
     filename = os.path.join(
         Dir, 'general_building', '{}.tif'.format(image_id))
-    msk = cv2.imread(filename)
+    msk = tiff.imread(filename)
     msk = msk.astype(np.float32) / 255
     msk = cv2.resize(msk, (Scale_Size, Scale_Size))
     msk_img = np.zeros([Scale_Size, Scale_Size], dtype=np.uint8)
@@ -67,7 +49,7 @@ def get_mask(image_id):
 def get_image(image_id):
     filename = os.path.join(
         Dir, 'split-data', '{}.tif'.format(image_id))
-    img = cv2.imread(filename)
+    img = tiff.imread(filename)
     img = img.astype(np.float32) / 255
     img_RGB = cv2.resize(img, (Scale_Size, Scale_Size))
     return img_RGB
@@ -154,11 +136,12 @@ def get_normalized_patches():
     std = np.std(img)
     img = (img - mean) / std
     print(mean, std)
-    print(np.mean(img), np.std(img))
+    # print(np.mean(img), np.std(img))
     return img, msk
 
 
 smooth = 1e-12
+
 
 def jaccard_coef(y_true, y_pred):
     intersection = K.sum(y_true * y_pred, axis=[0, -1, -2])
@@ -277,12 +260,15 @@ def get_unet0():
     return model
 
 
-
-
 # In predicting testing dataset, need to use the same mean and std in preprocessing training data
-def post_normalize_image(img, mean=0.34231746, std=0.42713192341923195):
+def post_normalize_image(img, mean=0.338318, std=0.189734):
     img = (img - mean) / std
     return img
+
+
+# get_normalized_patches()
+
+# 0.338318 0.189734
 
 all_Image_ID = sorted(train_img.ImageId.unique())
 all_len = len(all_Image_ID)
@@ -306,32 +292,33 @@ for i in range(loop_time):
     model_checkpoint = ModelCheckpoint(check_point_file_name, monitor='val_jaccard_coef_int', save_best_only=True,
                                        mode='max')
     # model_checkpoint = ModelCheckpoint(check_point_file_name, monitor='val_acc', save_best_only=True, mode='max')
-    model.fit(x_trn, y_trn, batch_size=16, epochs=25, verbose=1, shuffle=True, callbacks=[model_checkpoint],
+    model.fit(x_trn, y_trn, batch_size=16, epochs=35, verbose=1, shuffle=True, callbacks=[model_checkpoint],
               validation_data=(x_val, y_val))
     last_weight = check_point_file_name
     loop_i += 1
     del x_trn, x_val, y_trn, y_val, model
 
 img_last = all_len - loop_time * get_size
-if img_last > 0:
-    Image_ID = random.sample(all_Image_ID, img_last)
-    print(len(Image_ID))
-
-    all_Image_ID = [Image_ID2 for Image_ID2 in all_Image_ID if Image_ID2 not in Image_ID]
-
-    img, msk = get_normalized_patches()
-    x_trn, x_val, y_trn, y_val = train_test_split(img, msk, test_size=0.2, random_state=42)
-    y_trn = y_trn[:, :, :, None]
-    y_val = y_val[:, :, :, None]
-
-    model = get_unet0()
-    if loop_i != 0:
-        print("loaded")
-        model.load_weights(last_weight)
-    # model.load_weights("1unet5_c1.hdf5")
-    check_point_file_name = str(loop_i) + '_rotate_val_jaccard_coef_int_building.hdf5'
-    model_checkpoint = ModelCheckpoint(check_point_file_name, monitor='val_jaccard_coef_int', save_best_only=True,
-                                       mode='max')
-    model.fit(x_trn, y_trn, batch_size=16, epochs=25, verbose=1, shuffle=True, callbacks=[model_checkpoint],
-              validation_data=(x_val, y_val))
-    last_weight = check_point_file_name
+print(img_last)
+# if img_last > 0:
+#     Image_ID = random.sample(all_Image_ID, img_last)
+#     print(len(Image_ID))
+#
+#     all_Image_ID = [Image_ID2 for Image_ID2 in all_Image_ID if Image_ID2 not in Image_ID]
+#
+#     img, msk = get_normalized_patches()
+#     x_trn, x_val, y_trn, y_val = train_test_split(img, msk, test_size=0.2, random_state=42)
+#     y_trn = y_trn[:, :, :, None]
+#     y_val = y_val[:, :, :, None]
+#
+#     model = get_unet0()
+#     if loop_i != 0:
+#         print("loaded")
+#         model.load_weights(last_weight)
+#     # model.load_weights("1unet5_c1.hdf5")
+#     check_point_file_name = str(loop_i) + '_rotate_val_jaccard_coef_int_building.hdf5'
+#     model_checkpoint = ModelCheckpoint(check_point_file_name, monitor='val_jaccard_coef_int', save_best_only=True,
+#                                        mode='max')
+#     model.fit(x_trn, y_trn, batch_size=16, epochs=25, verbose=1, shuffle=True, callbacks=[model_checkpoint],
+#               validation_data=(x_val, y_val))
+#     last_weight = check_point_file_name

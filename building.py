@@ -17,7 +17,7 @@ from sklearn.model_selection import train_test_split
 
 Dir = '/home/yokoyang/PycharmProjects/untitled/896_biaozhu'
 
-train_img = pd.read_csv(Dir + '/data_imageID.csv')
+train_img = pd.read_csv(Dir + '/2.csv')
 
 Image_ID = sorted(train_img.ImageId.unique())
 print(Image_ID)
@@ -30,7 +30,7 @@ edge_size = int((crop_size - Patch_size) / 2)
 Class_Type = 1
 
 Scale_Size = Patch_size * N_split
-get_size = 121
+get_size = 119
 # get_size = 91
 
 
@@ -269,6 +269,7 @@ def post_normalize_image(img, mean=0.338318, std=0.189734):
 # get_normalized_patches()
 
 # 0.338318 0.189734
+# 0.508191 0.212494
 
 all_Image_ID = sorted(train_img.ImageId.unique())
 all_len = len(all_Image_ID)
@@ -307,7 +308,7 @@ print(img_last)
 #     all_Image_ID = [Image_ID2 for Image_ID2 in all_Image_ID if Image_ID2 not in Image_ID]
 #
 #     img, msk = get_normalized_patches()
-#     x_trn, x_val, y_trn, y_val = train_test_split(img, msk, test_size=0.2, random_state=42)
+#     x_trn, x_val, y_trn, y_val = train_test_split(img, msk, test_size=0.split-mask-data, random_state=42)
 #     y_trn = y_trn[:, :, :, None]
 #     y_val = y_val[:, :, :, None]
 #

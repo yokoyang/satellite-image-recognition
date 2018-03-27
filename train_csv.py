@@ -2,7 +2,8 @@ import os
 
 import pandas as pd
 
-Dir = "/home/yokoyang/Downloads/kaggle-data/EU2"
+# Dir = "/home/yokoyang/PycharmProjects/untitled/v-shanghai"
+Dir = "/home/yokoyang/PycharmProjects/untitled/EU_896"
 
 
 def get_files_name(file_dir):
@@ -21,5 +22,5 @@ def image2csv(dir_name, csv_name):
     df.to_csv(Dir + "/" + csv_name, index=False, header=True)
 
 
-image2csv(Dir + "/" + "land", "mask_data_imageID.csv")
-image2csv(Dir + "/" + "satellite", "data_imageID.csv")
+image2csv(Dir + "/" + "general_building", "mask_data_imageID.csv")
+image2csv(Dir + "/" + "split-data", "2.csv")

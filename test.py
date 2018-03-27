@@ -38,7 +38,7 @@ keras.backend.set_session(sess)
 
 Dir = '/home/yokoyang/Downloads/kaggle-data/EU'
 
-train_img = pd.read_csv(Dir + '/data_imageID.csv')
+train_img = pd.read_csv(Dir + '/2.csv')
 
 Image_ID = sorted(train_img.ImageId.unique())
 print(Image_ID)

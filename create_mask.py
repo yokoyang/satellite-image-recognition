@@ -34,8 +34,8 @@ dic_class['shadow'] = [255, 0, 255]
 # 水体&植被
 # 运动场&道路
 
-tag_name = 'split-mask-data'
-class_name = 'general_building'
+tag_name = 'split-mask-data-road'
+class_name = 'road'
 
 
 def get_mask(img, img_class):
@@ -45,12 +45,12 @@ def get_mask(img, img_class):
 
     for w in range(width):
         for h in range(height):
-            if np.array_equal(dic_class[img_class], img[w][h]):
+            if np.array_equal([111, 111, 111], img[w][h]) or np.array_equal(dic_class[img_class], img[w][h]):
                 msk[w][h] = [255, 255, 255]
     return msk
 
 
-# Dir = "/home/yokoyang/PycharmProjects/untitled/biaozhu"
+# Dir = "/home/yokoyang/PycharmProjects/untitled/896_val"
 Dir = "/home/yokoyang/PycharmProjects/untitled/896_biaozhu"
 
 

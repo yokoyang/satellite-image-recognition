@@ -2,17 +2,14 @@ import os
 
 from PIL import Image
 
-img_name = "/home/yokoyang/Downloads/row_1.tif"
-# img_name = "/home/yokoyang/Downloads/version_1.tif"
-
-# folder_name = "/home/yokoyang/PycharmProjects/untitled/896_biaozhu/split-mask-data/"
-# folder_name_val = "/home/yokoyang/PycharmProjects/untitled/896_val/split-mask-data/"
-
+# img_name = "/home/yokoyang/Downloads/kaggle-data/msk.tif"
+img_name = "/home/yokoyang/Downloads/kaggle-data/row.tif"
+# folder_name = "/home/yokoyang/PycharmProjects/untitled/896_biaozhu/split-mask-data-road/"
+# folder_name_val = "/home/yokoyang/PycharmProjects/untitled/896_val/split-mask-data-road/"
 folder_name = "/home/yokoyang/PycharmProjects/untitled/896_biaozhu/split-data/"
 folder_name_val = "/home/yokoyang/PycharmProjects/untitled/896_val/split-data/"
-
 Dir = "/home/yokoyang/PycharmProjects/untitled/images"
-# Dir = "/home/yokoyang/PycharmProjects/untitled/biaozhu/一般建筑&农村&工厂&阴影"
+# Dir = "/home/yokoyang/PycharmProjects/untitled/biaozhu/运动场&道路"
 img = Image.open(img_name)
 target_size = 896
 
@@ -31,6 +28,7 @@ for i in range(col):
             pic_name = folder_name + str(i) + "_" + str(j) + ".tif"
         img2.save(pic_name)
 
+i = 0
 for i in range(10):
     image_id = "0_0_" + str(i)
     filename = os.path.join(Dir, '{}.tif'.format(image_id))

@@ -17,7 +17,7 @@ from sklearn.model_selection import train_test_split
 
 Dir = '/home/yokoyang/PycharmProjects/untitled/896_biaozhu'
 
-train_img = pd.read_csv(Dir + '/2.csv')
+train_img = pd.read_csv(Dir + '/data_imageID.csv')
 
 Image_ID = sorted(train_img.ImageId.unique())
 print(Image_ID)
@@ -293,7 +293,7 @@ for i in range(loop_time):
     model_checkpoint = ModelCheckpoint(check_point_file_name, monitor='val_jaccard_coef_int', save_best_only=True,
                                        mode='max')
     # model_checkpoint = ModelCheckpoint(check_point_file_name, monitor='val_acc', save_best_only=True, mode='max')
-    model.fit(x_trn, y_trn, batch_size=16, epochs=35, verbose=1, shuffle=True, callbacks=[model_checkpoint],
+    model.fit(x_trn, y_trn, batch_size=16, epochs=60, verbose=1, shuffle=True, callbacks=[model_checkpoint],
               validation_data=(x_val, y_val))
     last_weight = check_point_file_name
     loop_i += 1

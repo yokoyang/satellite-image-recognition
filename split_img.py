@@ -1,15 +1,21 @@
+from PIL import Image
 import os
 
-from PIL import Image
-
 # img_name = "/home/yokoyang/Downloads/kaggle-data/msk.tif"
-img_name = "/home/yokoyang/Downloads/kaggle-data/row.tif"
-# folder_name = "/home/yokoyang/PycharmProjects/untitled/896_biaozhu/split-mask-data-road/"
+# img_name = "/home/yokoyang/Downloads/shanghai_model/shanghai_label.tif"
+img_name = "/home/yokoyang/PycharmProjects/untitled/shanghai_model/msk.tif"
+# img_name = "/home/yokoyang/PycharmProjects/untitled/shanghai_model/shanghai_label.tif"
+
+# img_name = "/home/yokoyang/Downloads/kaggle-data/row.tif"
+# folder_name = "/home/yokoyang/PycharmProjects/untitled/896_biaozhu/split-mask-data-fix/"
+# folder_name = "/home/yokoyang/PycharmProjects/untitled/896_biaozhu_new/split-mask-data/"
+folder_name = "/home/yokoyang/PycharmProjects/untitled/896_biaozhu/运动场&道路/"
+
 # folder_name_val = "/home/yokoyang/PycharmProjects/untitled/896_val/split-mask-data-road/"
-folder_name = "/home/yokoyang/PycharmProjects/untitled/896_biaozhu/split-data/"
-folder_name_val = "/home/yokoyang/PycharmProjects/untitled/896_val/split-data/"
-Dir = "/home/yokoyang/PycharmProjects/untitled/images"
-# Dir = "/home/yokoyang/PycharmProjects/untitled/biaozhu/运动场&道路"
+# folder_name = "/home/yokoyang/PycharmProjects/untitled/896_biaozhu/split-data/"
+# folder_name_val = "/home/yokoyang/PycharmProjects/untitled/896_val/split-data/"
+# Dir = "/home/yokoyang/PycharmProjects/untitled/images"
+Dir = "/home/yokoyang/PycharmProjects/untitled/biaozhu/运动场&道路"
 img = Image.open(img_name)
 target_size = 896
 
@@ -21,11 +27,13 @@ row = height // target_size
 for i in range(col):
     for j in range(row):
         img2 = img.crop((target_size * i, target_size * j, target_size * (i + 1), target_size * (j + 1)))
-
-        if (i == 1 and j < 3) or (j == 7 and i < 6):
-            pic_name = folder_name_val + str(i) + "_" + str(j) + ".tif"
-        else:
-            pic_name = folder_name + str(i) + "_" + str(j) + ".tif"
+        #
+        # if (i == 1 and j < 3) or (j == 7 and i < 6):
+        #     pic_name = folder_name_val + str(i) + "_" + str(j) + ".tif"
+        # else:
+        #     pic_name = folder_name + str(i) + "_" + str(j) + ".tif"
+        # img2.save(pic_name)
+        pic_name = folder_name + str(i) + "_" + str(j) + ".tif"
         img2.save(pic_name)
 
 i = 0

@@ -1,6 +1,5 @@
 import os
 
-import cv2 as cv2
 import numpy as np
 import pandas as pd
 import tifffile as tiff
@@ -18,16 +17,16 @@ from skimage import morphology
 # shadow 255,0,255
 
 dic_class = dict()
-dic_class['water'] = [0, 108, 255]
-dic_class['tree'] = [0, 168, 62]
-dic_class['playground'] = [102, 34, 153]
-dic_class['road'] = [112, 112, 112]
+dic_class['water'] = [48, 93, 254]
+dic_class['tree'] = [12, 169, 64]
+dic_class['playground'] = [102, 17, 151]
+dic_class['road'] = [111, 111, 111]
 dic_class['building_yard'] = [255, 255, 255]
-dic_class['bare_land'] = [242, 155, 118]
+dic_class['bare_land'] = [239, 156, 119]
 dic_class['general_building'] = [249, 255, 25]
 dic_class['countryside'] = [227, 22, 33]
 dic_class['factory'] = [48, 254, 254]
-dic_class['shadow'] = [255, 0, 255]
+dic_class['shadow'] = [255, 1, 255]
 
 # 一般建筑&农村&工厂&阴影
 # 运动场&道路
@@ -91,10 +90,10 @@ for i, img_id in enumerate(Image_ID):
     dst = dst.astype(np.uint8)
     msk_img = msk_img.astype(np.float32)
     dst ^= 1
+    msk_img = msk_img.astype(np.uint8)
     msk_img[:, :, 0] = dst[:, :] * 255
     msk_img[:, :, 1] = dst[:, :] * 255
     msk_img[:, :, 2] = dst[:, :] * 255
-
     tiff.imsave(msk_file_name, msk_img)
     # fig, (ax1, ax2) = plt.subplots(1, split-mask-data, figsize=(8, 4))
     # ax1.imshow(ms, plt.cm.gray, interpolation='nearest')

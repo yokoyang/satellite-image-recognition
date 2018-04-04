@@ -1,21 +1,22 @@
 from PIL import Image
 import os
 
-# img_name = "/home/yokoyang/Downloads/kaggle-data/msk.tif"
+img_name = "/home/yokoyang/Downloads/kaggle-data/msk.tif"
 # img_name = "/home/yokoyang/Downloads/shanghai_model/shanghai_label.tif"
-img_name = "/home/yokoyang/PycharmProjects/untitled/shanghai_model/msk.tif"
+# img_name = "/home/yokoyang/PycharmProjects/untitled/shanghai_model/shanghai_label.tif"
 # img_name = "/home/yokoyang/PycharmProjects/untitled/shanghai_model/shanghai_label.tif"
 
 # img_name = "/home/yokoyang/Downloads/kaggle-data/row.tif"
 # folder_name = "/home/yokoyang/PycharmProjects/untitled/896_biaozhu/split-mask-data-fix/"
 # folder_name = "/home/yokoyang/PycharmProjects/untitled/896_biaozhu_new/split-mask-data/"
-folder_name = "/home/yokoyang/PycharmProjects/untitled/896_biaozhu/运动场&道路/"
+folder_name = "/home/yokoyang/PycharmProjects/untitled/896_biaozhu/一般建筑&农村&工厂&阴影/"
 
 # folder_name_val = "/home/yokoyang/PycharmProjects/untitled/896_val/split-mask-data-road/"
 # folder_name = "/home/yokoyang/PycharmProjects/untitled/896_biaozhu/split-data/"
 # folder_name_val = "/home/yokoyang/PycharmProjects/untitled/896_val/split-data/"
 # Dir = "/home/yokoyang/PycharmProjects/untitled/images"
-Dir = "/home/yokoyang/PycharmProjects/untitled/biaozhu/运动场&道路"
+Dir = "/home/yokoyang/PycharmProjects/untitled/biaozhu/一般建筑&农村&工厂&阴影"
+
 img = Image.open(img_name)
 target_size = 896
 

@@ -3,6 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 import tifffile as tiff
+import cv2
 from skimage import morphology
 
 # water 0,108,255
@@ -43,11 +44,11 @@ dic_class['shadow'] = [255, 1, 255]
 # 一般建筑&农村&工厂&阴影
 # 运动场&道路
 # 水体&植被
-# 运动场&道路
+# 建筑场地&裸地
 
 tag_name = '一般建筑&农村&工厂&阴影'
-class_name = 'countryside'
-# class_name = 'bare_land'
+class_name = 'shadow'
+# class_name = 'bare_land'bare_land
 
 print(class_name)
 
@@ -63,7 +64,7 @@ def get_mask(img, img_class):
     return msk
 
 
-# Dir = "/home/yokoyang/PycharmProjects/untitled/896_val"
+# Dir = "/home/yokoyang/PycharmProjects/untitled/new_data"
 Dir = "/home/yokoyang/PycharmProjects/untitled/896_biaozhu"
 
 
@@ -90,6 +91,8 @@ train_img = pd.read_csv(Dir + '/data_imageID.csv')
 Image_ID = sorted(train_img.ImageId.unique())
 
 for i, img_id in enumerate(Image_ID):
+    # if img_id[0:3] != '0_0':
+    #     continue
     print(i)
     filename = os.path.join(Dir, tag_name, '{}.tif'.format(img_id))
     img = tiff.imread(filename)

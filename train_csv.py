@@ -3,7 +3,7 @@ import os
 import pandas as pd
 
 # Dir = "/home/yokoyang/PycharmProjects/untitled/v-shanghai"
-Dir = "/home/yokoyang/PycharmProjects/untitled/896_val"
+Dir = "/home/yokoyang/PycharmProjects/untitled/new_data/mask"
 
 
 def get_files_name(file_dir):
@@ -23,4 +23,4 @@ def image2csv(dir_name, csv_name):
 
 
 # image2csv(Dir + "/" + "general_building", "mask_data_imageID.csv")
-image2csv(Dir + "/" + "shanghai2", "shanghai_data_imageID.csv")
+image2csv(Dir, "data_imageID.csv")

@@ -1,3 +1,4 @@
+import gc
 import os
 
 import cv2
@@ -219,47 +220,141 @@ def post_normalize_image(img, mean=0.338318, std=0.189734):
 
 Dir = '/home/yokoyang/PycharmProjects/untitled/896_val'
 train_img = pd.read_csv(Dir + '/data_imageID.csv')
-# load all weights
-building_model = get_unet1()
-building_model.load_weights('/home/yokoyang/PycharmProjects/untitled/model/building.hdf5')
 
-dir_name = "shanghai2"
-img_id = '2_1'
-img = get_image_without_msk(img_id, dir_name)
-img = post_normalize_image(img)
 # check_predict_without_mask(building_model, 0.5, dir_name, img)
 
-build_msk = predict_id(img=img, model=building_model, th=0.5, dir_name=dir_name)
-build_msk = build_msk[:, :, 0]
-
-width, height = build_msk.shape
-channel = 3
+# load all weights
+# 1
+general_building = get_unet1()
+general_building.load_weights('/home/yokoyang/PycharmProjects/untitled/model/general_building_1.hdf5')
 
 tree_model = get_unet1()
-tree_model.load_weights('/home/yokoyang/PycharmProjects/untitled/model/tree.hdf5')
-tree_msk = predict_id(img=img, model=tree_model, th=0.5, dir_name=dir_name)
-tree_msk = tree_msk[:, :, 0]
-
+tree_model.load_weights('/home/yokoyang/PycharmProjects/untitled/model/tree_1.hdf5')
 
 water_model = get_unet1()
-water_model.load_weights('/home/yokoyang/PycharmProjects/untitled/model/water.hdf5')
-water_msk = predict_id(img=img, model=water_model, th=0.4, dir_name=dir_name)
-water_msk = water_msk[:, :, 0]
+water_model.load_weights('/home/yokoyang/PycharmProjects/untitled/model/water_1.hdf5')
 
-row_img = get_image_row(img_id, dir_name)
-row_img = cv2.resize(row_img, (Scale_Size, Scale_Size))
+bare_land_1_model = get_unet1()
+bare_land_1_model.load_weights('/home/yokoyang/PycharmProjects/untitled/model/bare_land_1.hdf5')
 
-merge_msk = np.copy(row_img)
-for i in range(width):
-    for j in range(height):
-        if build_msk[i][j]:
-            merge_msk[i][j] = dic_class['general_building']
-        elif water_msk[i][j]:
-            merge_msk[i][j] = dic_class['water']
-        elif tree_msk[i][j]:
-            merge_msk[i][j] = dic_class['tree']
+building_yard_model = get_unet1()
+building_yard_model.load_weights('/home/yokoyang/PycharmProjects/untitled/model/building_yard_1.hdf5')
 
-print("finished")
+countryside_model = get_unet1()
+countryside_model.load_weights('/home/yokoyang/PycharmProjects/untitled/model/countryside_1.hdf5')
+
+factory_model = get_unet1()
+factory_model.load_weights('/home/yokoyang/PycharmProjects/untitled/model/factory_1.hdf5')
+
+playground_model = get_unet1()
+playground_model.load_weights('/home/yokoyang/PycharmProjects/untitled/model/playground_1.hdf5')
+
+road_model = get_unet1()
+road_model.load_weights('/home/yokoyang/PycharmProjects/untitled/model/road_1.hdf5')
+
+shadow_model = get_unet1()
+shadow_model.load_weights('/home/yokoyang/PycharmProjects/untitled/model/shadow_1.hdf5')
+
+val_dir = '/home/yokoyang/PycharmProjects/untitled/896_val'
+test_img = pd.read_csv(Dir + '/data_imageID.csv')
+
+test_img_Image_ID = sorted(test_img.ImageId.unique())
+dir_name = "shanghai2"
 msk_file_dir = '/home/yokoyang/PycharmProjects/untitled/predict_img_result'
-msk_file_name = msk_file_dir + "/" + img_id + ".tif"
-tiff.imsave(msk_file_name, merge_msk)
+
+for d in range(0, 81):
+    img_id = test_img_Image_ID[d]
+    img = get_image_without_msk(img_id, dir_name)
+    img = post_normalize_image(img)
+    # 1
+    build_msk = predict_id(img=img, model=general_building, th=0.5, dir_name=dir_name)
+    build_msk = build_msk[:, :, 0]
+
+    width, height = build_msk.shape
+    channel = 3
+
+    # 2
+
+    tree_msk = predict_id(img=img, model=tree_model, th=0.5, dir_name=dir_name)
+    tree_msk = tree_msk[:, :, 0]
+
+    # 3
+
+    water_msk = predict_id(img=img, model=water_model, th=0.5, dir_name=dir_name)
+    water_msk = water_msk[:, :, 0]
+
+    # 4
+
+    bare_land_msk = predict_id(img=img, model=bare_land_1_model, th=0.5, dir_name=dir_name)
+    bare_land_msk = bare_land_msk[:, :, 0]
+
+    # 5
+
+    building_yard_msk = predict_id(img=img, model=building_yard_model, th=0.5, dir_name=dir_name)
+    building_yard_msk = building_yard_msk[:, :, 0]
+
+    # 6
+
+    countryside_msk = predict_id(img=img, model=countryside_model, th=0.5, dir_name=dir_name)
+    countryside_msk = countryside_msk[:, :, 0]
+
+    # 7
+
+    factory_msk = predict_id(img=img, model=factory_model, th=0.5, dir_name=dir_name)
+    factory_msk = factory_msk[:, :, 0]
+
+    # 8
+
+    playground_msk = predict_id(img=img, model=playground_model, th=0.5, dir_name=dir_name)
+    playground_msk = playground_msk[:, :, 0]
+
+    # 9
+
+    road_msk = predict_id(img=img, model=road_model, th=0.5, dir_name=dir_name)
+    road_msk = road_msk[:, :, 0]
+
+    # 10
+
+    shadow_msk = predict_id(img=img, model=shadow_model, th=0.5, dir_name=dir_name)
+    shadow_msk = shadow_msk[:, :, 0]
+
+    row_img = get_image_row(img_id, dir_name)
+    row_img = cv2.resize(row_img, (Scale_Size, Scale_Size))
+
+    merge_msk = np.copy(row_img)
+    for i in range(width):
+        for j in range(height):
+
+            if road_msk[i][j]:
+                merge_msk[i][j] = dic_class['road']
+            elif water_msk[i][j]:
+                merge_msk[i][j] = dic_class['water']
+
+            elif build_msk[i][j]:
+                merge_msk[i][j] = dic_class['general_building']
+
+            elif shadow_msk[i][j]:
+                merge_msk[i][j] = dic_class['shadow']
+
+            elif bare_land_msk[i][j]:
+                merge_msk[i][j] = dic_class['bare_land']
+            elif building_yard_msk[i][j]:
+                merge_msk[i][j] = dic_class['building_yard']
+
+            elif playground_msk[i][j]:
+                merge_msk[i][j] = dic_class['playground']
+
+            elif countryside_msk[i][j]:
+                merge_msk[i][j] = dic_class['countryside']
+            elif factory_msk[i][j]:
+                merge_msk[i][j] = dic_class['factory']
+            elif tree_msk[i][j]:
+                merge_msk[i][j] = dic_class['tree']
+
+    print("finished")
+    msk_file_name = msk_file_dir + "/" + img_id + ".tif"
+    tiff.imsave(msk_file_name, merge_msk)
+    del img, merge_msk, water_msk, road_msk, countryside_msk, factory_msk, playground_msk, build_msk, shadow_msk, \
+        bare_land_msk, tree_msk,
+    K.clear_session()
+    gc.collect()

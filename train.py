@@ -1,3 +1,4 @@
+import gc
 import os
 import random
 
@@ -25,7 +26,7 @@ edge_size = int((crop_size - Patch_size) / 2)
 Class_Type = 1
 
 Scale_Size = Patch_size * N_split
-get_size = 120
+get_size = 159
 
 
 # get_size = 91
@@ -357,12 +358,15 @@ def get_unet1():
 # get_normalized_patches()
 
 # 0.338318 0.189734
-# 0.508191 0.212494
-
-
-all_class = ['playground', 'countryside', 'water', 'road', 'building_yard', 'bare_land', 'general_building','tree' ,
+all_class = ['countryside', 'playground', 'tree', 'road', 'building_yard', 'bare_land', 'water', 'general_building',
              'factory', 'shadow']
-# all_class = ['playground', 'road', 'building_yard', 'bare_land', 'countryside', 'factory', 'shadow']
+# train_img = pd.read_csv(Dir + '/data_imageID.csv')
+# Image_ID = sorted(train_img.ImageId.unique())
+# print(Image_ID)
+# all_class = ['general_building']
+# get_normalized_patches('general_building')
+# 0.341292 0.147548
+
 for c in all_class:
     train_img = pd.read_csv(Dir + '/data_imageID.csv')
 
@@ -387,15 +391,18 @@ for c in all_class:
             print("loaded")
             model.load_weights(last_weight)
 
-        check_point_file_name = str(loop_i) + c + '_1.hdf5'
+        check_point_file_name = str(loop_i) + c + '_3.hdf5'
         model_checkpoint = ModelCheckpoint(check_point_file_name, monitor='val_jaccard_coef_int', save_best_only=True,
                                            mode='max')
         # model_checkpoint = ModelCheckpoint(check_point_file_name, monitor='val_acc', save_best_only=True, mode='max')
-        model.fit(x_trn, y_trn, batch_size=16, epochs=200, verbose=1, shuffle=True, callbacks=[model_checkpoint],
+        model.fit(x_trn, y_trn, batch_size=16, epochs=100, verbose=1, shuffle=True, callbacks=[model_checkpoint],
                   validation_data=(x_val, y_val))
         last_weight = check_point_file_name
         loop_i += 1
         del x_trn, x_val, y_trn, y_val, model
+        K.clear_session()
+
+        gc.collect()
 
     img_last = all_len - loop_time * get_size
     print(img_last)

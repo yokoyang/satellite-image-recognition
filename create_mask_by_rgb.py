@@ -1,8 +1,8 @@
 import os
 
-import cv2 as cv2
 import numpy as np
 import pandas as pd
+import tifffile as tiff
 from skimage import morphology
 
 # water 0,108,255
@@ -17,24 +17,24 @@ from skimage import morphology
 # shadow 255,0,255
 
 dic_class = dict()
-dic_class['water'] = [0, 108, 255]
-dic_class['tree'] = [0, 168, 62]
-dic_class['playground'] = [102, 34, 153]
-dic_class['road'] = [112, 112, 112]
+dic_class['water'] = [48, 93, 254]
+dic_class['tree'] = [12, 169, 64]
+dic_class['playground'] = [102, 17, 151]
+dic_class['road'] = [111, 111, 111]
 dic_class['building_yard'] = [255, 255, 255]
-dic_class['bare_land'] = [242, 155, 118]
+dic_class['bare_land'] = [239, 156, 119]
 dic_class['general_building'] = [249, 255, 25]
 dic_class['countryside'] = [227, 22, 33]
 dic_class['factory'] = [48, 254, 254]
-dic_class['shadow'] = [255, 0, 255]
+dic_class['shadow'] = [255, 1, 255]
 
 # 一般建筑&农村&工厂&阴影
 # 运动场&道路
 # 水体&植被
 # 运动场&道路
-
-tag_name = '运动场&道路'
-class_name = 'road'
+# 建筑场地&裸地
+tag_name = 'split-mask-data'
+class_name = 'general_building'
 
 
 def get_mask(img, img_class):
@@ -49,7 +49,8 @@ def get_mask(img, img_class):
     return msk
 
 
-Dir = "/home/yokoyang/PycharmProjects/untitled/biaozhu"
+# Dir = "/home/yokoyang/PycharmProjects/untitled/896_biaozhu"
+Dir = "/home/yokoyang/PycharmProjects/untitled/896_val"
 
 
 def get_files_name(file_dir):
@@ -69,29 +70,32 @@ def image2csv(img_folder_name, dir_name, csv_name):
 
 
 img_folder_name = Dir + '/' + tag_name
-image2csv(img_folder_name, Dir, "data_imageID.csv")
-train_img = pd.read_csv(Dir + '/data_imageID.csv')
+image2csv(img_folder_name, Dir, "2.csv")
+train_img = pd.read_csv(Dir + '/2.csv')
 
 Image_ID = sorted(train_img.ImageId.unique())
 
 for i, img_id in enumerate(Image_ID):
     print(i)
     filename = os.path.join(Dir, tag_name, '{}.tif'.format(img_id))
-    img = cv2.imread(filename)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    # img = cv2.imread(filename)
+    # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img = tiff.imread(filename)
     msk_file_name = os.path.join(Dir, class_name, '{}.tif'.format(img_id))
     msk_img = get_mask(img, class_name)
     # cv2.imwrite(msk_file_name, msk_img)
     msk_img = msk_img > 1
     ms = msk_img[:, :, 1]
     dst = morphology.remove_small_objects(ms, min_size=10, connectivity=1)
-    dst = dst.astype(np.float32)
+    dst = dst.astype(np.uint8)
     msk_img = msk_img.astype(np.float32)
-    msk_img[:, :, 0] = dst[:, :] * 255.0
-    msk_img[:, :, 1] = dst[:, :] * 255.0
-    msk_img[:, :, 2] = dst[:, :] * 255.0
-    cv2.imwrite(msk_file_name, msk_img)
-    # fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 4))
+    dst ^= 1
+    msk_img = msk_img.astype(np.uint8)
+    msk_img[:, :, 0] = dst[:, :] * 255
+    msk_img[:, :, 1] = dst[:, :] * 255
+    msk_img[:, :, 2] = dst[:, :] * 255
+    tiff.imsave(msk_file_name, msk_img)
+    # fig, (ax1, ax2) = plt.subplots(1, split-mask-data, figsize=(8, 4))
     # ax1.imshow(ms, plt.cm.gray, interpolation='nearest')
     # ax2.imshow(dst, plt.cm.gray, interpolation='nearest')
     # fig.tight_layout()

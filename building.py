@@ -26,7 +26,6 @@ from shapely.wkt import loads as wkt_loads
 from keras.backend import binary_crossentropy
 import tensorflow as tf
 
-
 config = tf.ConfigProto()
 print(config.gpu_options.allow_growth)
 config.gpu_options.allow_growth = True
@@ -160,6 +159,7 @@ def get_normalized_patches():
 
 smooth = 1e-12
 
+
 def jaccard_coef(y_true, y_pred):
     intersection = K.sum(y_true * y_pred, axis=[0, -1, -2])
     sum_ = K.sum(y_true + y_pred, axis=[0, -1, -2])
@@ -277,12 +277,11 @@ def get_unet0():
     return model
 
 
-
-
 # In predicting testing dataset, need to use the same mean and std in preprocessing training data
 def post_normalize_image(img, mean=0.34231746, std=0.42713192341923195):
     img = (img - mean) / std
     return img
+
 
 all_Image_ID = sorted(train_img.ImageId.unique())
 all_len = len(all_Image_ID)

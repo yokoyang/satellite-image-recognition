@@ -6,15 +6,15 @@ patch_size = 192
 get_size = 159
 test_file_dir = '/home/yokoyang/PycharmProjects/untitled/896_val'
 msk_file_dir = '/home/yokoyang/PycharmProjects/untitled/predict_img_result'
-file_dir = '/home/yokoyang/PycharmProjects/untitled/896_biaozhu'
+file_dir = test_file_dir
 
 u_net = U_net(n_split, crop_size, patch_size, get_size, test_file_dir, msk_file_dir, file_dir)
 all_class = ['countryside', 'playground', 'tree', 'road', 'building_yard', 'bare_land', 'water', 'general_building',
              'factory', 'shadow']
 data_imageID_file = '/home/yokoyang/PycharmProjects/untitled/896_biaozhu/data_imageID.csv'
 
-for c in all_class:
-    u_net.train(c, data_imageID_file, 'unet1', epochs=100)
+# for c in all_class:
+#     u_net.train(c, data_imageID_file, 'unet1', epochs=100)
 
 general_building = u_net.get_unet1()
 general_building.load_weights('/home/yokoyang/PycharmProjects/untitled/model/general_building_1.hdf5')

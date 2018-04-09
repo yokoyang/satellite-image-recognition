@@ -5,12 +5,12 @@ import pandas as pd
 
 Dir = "/home/yokoyang/PycharmProjects/untitled/new_data"
 target_size = 896
-folder_name = "/home/yokoyang/PycharmProjects/untitled/new_data/split-data/"
+folder_name = "/home/yokoyang/PycharmProjects/untitled/new_data/split-mask-data/"
 
 train_img = pd.read_csv(Dir + '/data_imageID.csv')
 
 Image_ID = sorted(train_img.ImageId.unique())
-name = 'target'
+name = 'mask'
 i = 0
 for i in Image_ID:
     filename = os.path.join(Dir, name,'{}.tif'.format(i))

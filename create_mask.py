@@ -46,8 +46,9 @@ dic_class['shadow'] = [255, 1, 255]
 # 水体&植被
 # 建筑场地&裸地
 
-tag_name = '一般建筑&农村&工厂&阴影'
-class_name = 'shadow'
+tag_name = 'split-mask-data'
+# tag_name = '水体&植被'          water
+class_name = 'playground'
 # class_name = 'bare_land'bare_land
 
 print(class_name)

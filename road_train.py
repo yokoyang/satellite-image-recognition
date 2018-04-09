@@ -8,12 +8,22 @@ import pandas as pd
 import tifffile as tiff
 from keras import backend as K
 from keras.backend import binary_crossentropy
+<<<<<<< HEAD:building.py
+import tensorflow as tf
+
+config = tf.ConfigProto()
+print(config.gpu_options.allow_growth)
+config.gpu_options.allow_growth = True
+sess = tf.Session(config=config)
+keras.backend.set_session(sess)
+=======
 from keras.callbacks import ModelCheckpoint
 from keras.layers import concatenate, Conv2D, Input, MaxPooling2D, UpSampling2D, Cropping2D
 from keras.layers.normalization import BatchNormalization
 from keras.models import Model
 from keras.optimizers import Nadam
 from sklearn.model_selection import train_test_split
+>>>>>>> 05ffbcf706633701ffbc03a98e3f93bb57dbd429:road_train.py
 
 Dir = '/home/yokoyang/PycharmProjects/untitled/896_biaozhu'
 
@@ -266,11 +276,14 @@ def post_normalize_image(img, mean=0.346092, std=0.176794):
     return img
 
 
+<<<<<<< HEAD:building.py
+=======
 # get_normalized_patches()
 
 # 0.338318 0.189734
 # 0.508191 0.212494
 #
+>>>>>>> 05ffbcf706633701ffbc03a98e3f93bb57dbd429:road_train.py
 all_Image_ID = sorted(train_img.ImageId.unique())
 all_len = len(all_Image_ID)
 loop_time = all_len // get_size

@@ -16,7 +16,7 @@ all_class = ['countryside', 'playground', 'tree', 'road', 'building_yard', 'bare
              'factory', 'shadow']
 
 model = u_net.get_unet_multi()
-model.load_weights('/home/yokoyang/PycharmProjects/untitled/me/all.hdf5')
+model.load_weights('/home/yokoyang/PycharmProjects/untitled/model/all.hdf5')
 
 img = tiff.imread('/home/yokoyang/PycharmProjects/untitled/896_val/shanghai2/2_2.tif')
 test_img = cv2.resize(img, (u_net.scale_size, u_net.scale_size))

@@ -1,31 +1,21 @@
-import pandas as pd
-import numpy as np
 import os
 import random
-import matplotlib.pyplot as plt
-from keras.preprocessing.image import ImageDataGenerator
-from keras.models import Model
-from keras.layers import concatenate, Conv2D, Input, merge, Convolution2D, MaxPooling2D, UpSampling2D, Cropping2D
-from keras.optimizers import Adam, Adamax, Nadam, Adadelta, SGD, RMSprop
-from keras.callbacks import ModelCheckpoint, LearningRateScheduler
-from keras import backend as K
-from keras.utils.io_utils import HDF5Matrix
-import h5py
-import keras
-from keras.utils import np_utils
-from keras.layers.normalization import BatchNormalization
-from sklearn.metrics import jaccard_similarity_score
-from sklearn.model_selection import train_test_split
-import cv2
-import shapely.wkt
-import shapely.affinity
-from shapely.geometry import MultiPolygon, Polygon
-from collections import defaultdict
-from shapely.wkt import loads as wkt_loads
-from keras.backend import binary_crossentropy
-import tensorflow as tf
-import tifffile as tiff
 
+import cv2
+import keras
+import numpy as np
+import pandas as pd
+import tifffile as tiff
+from keras import backend as K
+from keras.backend import binary_crossentropy
+from keras.callbacks import ModelCheckpoint
+from keras.layers import concatenate, Conv2D, Input, MaxPooling2D, UpSampling2D, Cropping2D, Convolution2D, Flatten, \
+    Dense, Activation, Dropout
+from keras.layers.normalization import BatchNormalization
+from keras.models import Model, Sequential
+from keras.optimizers import Nadam
+from keras.utils import np_utils
+from sklearn.model_selection import train_test_split
 
 n_class = 10
 Dir = '/home/yokoyang/PycharmProjects/untitled/896_biaozhu'
@@ -45,6 +35,7 @@ Scale_Size = Patch_size * N_split
 get_size = 231
 smooth = 1e-12
 
+
 def get_mask(image_id):
     filename = os.path.join(
         Dir, 'mix_all', '{}.npy'.format(image_id))
@@ -60,6 +51,7 @@ def get_image(image_id):
     img = img.astype(np.float32) / 255
     img_RGB = cv2.resize(img, (Scale_Size, Scale_Size))
     return img_RGB
+
 
 def reflect_img(img):
     reflect = cv2.copyMakeBorder(img, int(edge_size), int(edge_size), int(edge_size), int(edge_size),
@@ -77,6 +69,7 @@ def rotate_img(img, ang, size):
 
 def rotate_msk(msk, ang):
     return np.rot90(msk, ang)
+
 
 def get_patch(img_id, pos=1):
     print(img_id)
@@ -144,7 +137,6 @@ def get_normalized_patches():
     return img, msk
 
 
-
 def jaccard_coef(y_true, y_pred):
     intersection = K.sum(y_true * y_pred, axis=[0, -1, -2])
     sum_ = K.sum(y_true + y_pred, axis=[0, -1, -2])
@@ -168,9 +160,32 @@ def jaccard_coef_int(y_true, y_pred):
 def jaccard_coef_loss(y_true, y_pred):
     return -K.log(jaccard_coef(y_true, y_pred)) + binary_crossentropy(y_pred, y_true)
 
+
 def post_normalize_image(img, mean=0.338318, std=0.189734):
     img = (img - mean) / std
     return img
+
+
+def cnn_model():
+    model = Sequential()
+    model.add(Convolution2D(32, 3, 3, padding='same', input_shape=(crop_size, crop_size, 3),
+                            kernel_initializer='he_uniform', activation='relu'))
+    model.add(Flatten())
+
+    model.add(Dense(512))
+    model.add(Activation('relu'))
+    model.add(Dropout(0.2))
+
+    model.add(Dense(512))
+    model.add(Activation('relu'))
+    model.add(Dropout(0.2))
+
+    model.add(Dense(512))
+    model.add(Activation('relu'))
+    model.add(Dropout(0.2))
+
+    return model
+
 
 def get_unet1():
     inputs = Input((crop_size, crop_size, 3))
@@ -262,6 +277,7 @@ def get_unet1():
     model.compile(optimizer=Nadam(lr=1e-3), loss=jaccard_coef_loss, metrics=['binary_crossentropy', jaccard_coef_int])
     return model
 
+
 all_Image_ID = sorted(train_img.ImageId.unique())
 all_len = len(all_Image_ID)
 loop_time = all_len // get_size
@@ -289,7 +305,6 @@ for i in range(loop_time):
     last_weight = check_point_file_name
     loop_i += 1
     del x_trn, x_val, y_trn, y_val, model
-
 
 img_last = all_len - loop_time * get_size
 print(img_last)

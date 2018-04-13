@@ -1,280 +1,128 @@
-from __future__ import division
-
-import datetime
 import os
 import random
-import threading
 
-import h5py
-import keras
+import cv2
 import numpy as np
 import pandas as pd
-from keras import backend as K
-from keras.backend import binary_crossentropy
-from keras.callbacks import History
-from keras.layers import Input, merge, Convolution2D, MaxPooling2D, UpSampling2D, Cropping2D
-from keras.layers.normalization import BatchNormalization
-from keras.models import Model
-from keras.models import model_from_json
-from keras.optimizers import Nadam
-
-img_rows = 112
-img_cols = 112
-
-smooth = 1e-12
-
-num_channels = 16
-num_mask_channels = 1
-
-
-def jaccard_coef(y_true, y_pred):
-    intersection = K.sum(y_true * y_pred, axis=[0, -1, -2])
-    sum_ = K.sum(y_true + y_pred, axis=[0, -1, -2])
-
-    jac = (intersection + smooth) / (sum_ - intersection + smooth)
-
-    return K.mean(jac)
-
-
-def jaccard_coef_int(y_true, y_pred):
-    y_pred_pos = K.round(K.clip(y_pred, 0, 1))
-
-    intersection = K.sum(y_true * y_pred_pos, axis=[0, -1, -2])
-    sum_ = K.sum(y_true + y_pred_pos, axis=[0, -1, -2])
-
-    jac = (intersection + smooth) / (sum_ - intersection + smooth)
-
-    return K.mean(jac)
-
-
-def jaccard_coef_loss(y_true, y_pred):
-    return -K.log(jaccard_coef(y_true, y_pred)) + binary_crossentropy(y_pred, y_true)
-
-
-def get_unet0():
-    inputs = Input((num_channels, img_rows, img_cols))
-    conv1 = Convolution2D(32, 3, 3, border_mode='same', init='he_uniform')(inputs)
-    conv1 = BatchNormalization(mode=0, axis=1)(conv1)
-    conv1 = keras.layers.advanced_activations.ELU()(conv1)
-    conv1 = Convolution2D(32, 3, 3, border_mode='same', init='he_uniform')(conv1)
-    conv1 = BatchNormalization(mode=0, axis=1)(conv1)
-    conv1 = keras.layers.advanced_activations.ELU()(conv1)
-    pool1 = MaxPooling2D(pool_size=(2, 2))(conv1)
-
-    conv2 = Convolution2D(64, 3, 3, border_mode='same', init='he_uniform')(pool1)
-    conv2 = BatchNormalization(mode=0, axis=1)(conv2)
-    conv2 = keras.layers.advanced_activations.ELU()(conv2)
-    conv2 = Convolution2D(64, 3, 3, border_mode='same', init='he_uniform')(conv2)
-    conv2 = BatchNormalization(mode=0, axis=1)(conv2)
-    conv2 = keras.layers.advanced_activations.ELU()(conv2)
-    pool2 = MaxPooling2D(pool_size=(2, 2))(conv2)
-
-    conv3 = Convolution2D(128, 3, 3, border_mode='same', init='he_uniform')(pool2)
-    conv3 = BatchNormalization(mode=0, axis=1)(conv3)
-    conv3 = keras.layers.advanced_activations.ELU()(conv3)
-    conv3 = Convolution2D(128, 3, 3, border_mode='same', init='he_uniform')(conv3)
-    conv3 = BatchNormalization(mode=0, axis=1)(conv3)
-    conv3 = keras.layers.advanced_activations.ELU()(conv3)
-    pool3 = MaxPooling2D(pool_size=(2, 2))(conv3)
-
-    conv4 = Convolution2D(256, 3, 3, border_mode='same', init='he_uniform')(pool3)
-    conv4 = BatchNormalization(mode=0, axis=1)(conv4)
-    conv4 = keras.layers.advanced_activations.ELU()(conv4)
-    conv4 = Convolution2D(256, 3, 3, border_mode='same', init='he_uniform')(conv4)
-    conv4 = BatchNormalization(mode=0, axis=1)(conv4)
-    conv4 = keras.layers.advanced_activations.ELU()(conv4)
-    pool4 = MaxPooling2D(pool_size=(2, 2))(conv4)
-
-    conv5 = Convolution2D(512, 3, 3, border_mode='same', init='he_uniform')(pool4)
-    conv5 = BatchNormalization(mode=0, axis=1)(conv5)
-    conv5 = keras.layers.advanced_activations.ELU()(conv5)
-    conv5 = Convolution2D(512, 3, 3, border_mode='same', init='he_uniform')(conv5)
-    conv5 = BatchNormalization(mode=0, axis=1)(conv5)
-    conv5 = keras.layers.advanced_activations.ELU()(conv5)
-
-    up6 = merge([UpSampling2D(size=(2, 2))(conv5), conv4], mode='concat', concat_axis=1)
-    conv6 = Convolution2D(256, 3, 3, border_mode='same', init='he_uniform')(up6)
-    conv6 = BatchNormalization(mode=0, axis=1)(conv6)
-    conv6 = keras.layers.advanced_activations.ELU()(conv6)
-    conv6 = Convolution2D(256, 3, 3, border_mode='same', init='he_uniform')(conv6)
-    conv6 = BatchNormalization(mode=0, axis=1)(conv6)
-    conv6 = keras.layers.advanced_activations.ELU()(conv6)
-
-    up7 = merge([UpSampling2D(size=(2, 2))(conv6), conv3], mode='concat', concat_axis=1)
-    conv7 = Convolution2D(128, 3, 3, border_mode='same', init='he_uniform')(up7)
-    conv7 = BatchNormalization(mode=0, axis=1)(conv7)
-    conv7 = keras.layers.advanced_activations.ELU()(conv7)
-    conv7 = Convolution2D(128, 3, 3, border_mode='same', init='he_uniform')(conv7)
-    conv7 = BatchNormalization(mode=0, axis=1)(conv7)
-    conv7 = keras.layers.advanced_activations.ELU()(conv7)
-
-    up8 = merge([UpSampling2D(size=(2, 2))(conv7), conv2], mode='concat', concat_axis=1)
-    conv8 = Convolution2D(64, 3, 3, border_mode='same', init='he_uniform')(up8)
-    conv8 = BatchNormalization(mode=0, axis=1)(conv8)
-    conv8 = keras.layers.advanced_activations.ELU()(conv8)
-    conv8 = Convolution2D(64, 3, 3, border_mode='same', init='he_uniform')(conv8)
-    conv8 = BatchNormalization(mode=0, axis=1)(conv8)
-    conv8 = keras.layers.advanced_activations.ELU()(conv8)
-
-    up9 = merge([UpSampling2D(size=(2, 2))(conv8), conv1], mode='concat', concat_axis=1)
-    conv9 = Convolution2D(32, 3, 3, border_mode='same', init='he_uniform')(up9)
-    conv9 = BatchNormalization(mode=0, axis=1)(conv9)
-    conv9 = keras.layers.advanced_activations.ELU()(conv9)
-    conv9 = Convolution2D(32, 3, 3, border_mode='same', init='he_uniform')(conv9)
-    crop9 = Cropping2D(cropping=((16, 16), (16, 16)))(conv9)
-    conv9 = BatchNormalization(mode=0, axis=1)(crop9)
-    conv9 = keras.layers.advanced_activations.ELU()(conv9)
-    conv10 = Convolution2D(num_mask_channels, 1, 1, activation='sigmoid')(conv9)
-
-    model = Model(input=inputs, output=conv10)
-
-    return model
-
-
-def flip_axis(x, axis):
-    x = np.asarray(x).swapaxes(axis, 0)
-    x = x[::-1, ...]
-    x = x.swapaxes(0, axis)
-    return x
-
-
-def form_batch(X, y, batch_size):
-    X_batch = np.zeros((batch_size, num_channels, img_rows, img_cols))
-    y_batch = np.zeros((batch_size, num_mask_channels, img_rows, img_cols))
-    X_height = X.shape[2]
-    X_width = X.shape[3]
-
-    for i in range(batch_size):
-        random_width = random.randint(0, X_width - img_cols - 1)
-        random_height = random.randint(0, X_height - img_rows - 1)
-
-        random_image = random.randint(0, X.shape[0] - 1)
-
-        y_batch[i] = y[random_image, :, random_height: random_height + img_rows, random_width: random_width + img_cols]
-        X_batch[i] = np.array(
-            X[random_image, :, random_height: random_height + img_rows, random_width: random_width + img_cols])
-    return X_batch, y_batch
-
-
-class threadsafe_iter:
-    """Takes an iterator/generator and makes it thread-safe by
-    serializing call to the `next` method of given iterator/generator.
-    """
-
-    def __init__(self, it):
-        self.it = it
-        self.lock = threading.Lock()
-
-    def __iter__(self):
-        return self
-
-    def next(self):
-        with self.lock:
-            return self.it.next()
-
-
-def threadsafe_generator(f):
-    """A decorator that takes a generator function and makes it thread-safe.
-    """
-
-    def g(*a, **kw):
-        return threadsafe_iter(f(*a, **kw))
-
-    return g
-
-
-@threadsafe_generator
-def batch_generator(X, y, batch_size, horizontal_flip=False, vertical_flip=False, swap_axis=False):
-    while True:
-        X_batch, y_batch = form_batch(X, y, batch_size)
-
-        for i in range(X_batch.shape[0]):
-            xb = X_batch[i]
-            yb = y_batch[i]
-
-            if horizontal_flip:
-                if np.random.random() < 0.5:
-                    xb = flip_axis(xb, 1)
-                    yb = flip_axis(yb, 1)
-
-            if vertical_flip:
-                if np.random.random() < 0.5:
-                    xb = flip_axis(xb, 2)
-                    yb = flip_axis(yb, 2)
-
-            if swap_axis:
-                if np.random.random() < 0.5:
-                    xb = xb.swapaxes(1, 2)
-                    yb = yb.swapaxes(1, 2)
-
-            X_batch[i] = xb
-            y_batch[i] = yb
-
-        yield X_batch, y_batch[:, :, 16:16 + img_rows - 32, 16:16 + img_cols - 32]
-
-
-def save_model(model, cross):
-    json_string = model.to_json()
-    if not os.path.isdir('cache'):
-        os.mkdir('cache')
-    json_name = 'architecture_' + cross + '.json'
-    weight_name = 'model_weights_' + cross + '.h5'
-    open(os.path.join('cache', json_name), 'w').write(json_string)
-    model.save_weights(os.path.join('cache', weight_name), overwrite=True)
-
-
-def save_history(history, suffix):
-    filename = 'history/history_' + suffix + '.csv'
-    pd.DataFrame(history.history).to_csv(filename, index=False)
-
-
-def read_model(cross=''):
-    json_name = 'architecture_' + cross + '.json'
-    weight_name = 'model_weights_' + cross + '.h5'
-    model = model_from_json(open(os.path.join('../src/cache', json_name)).read())
-    model.load_weights(os.path.join('../src/cache', weight_name))
-    return model
-
-
-if __name__ == '__main__':
-    data_path = '../data'
-    now = datetime.datetime.now()
-
-    print('[{}] Creating and compiling model...'.format(str(datetime.datetime.now())))
-
-    model = get_unet0()
-
-    print('[{}] Reading train...'.format(str(datetime.datetime.now())))
-    f = h5py.File(os.path.join(data_path, 'train_16.h5'), 'r')
-
-    X_train = f['train']
-
-    y_train = np.array(f['train_mask'])[:, 0]
-    y_train = np.expand_dims(y_train, 1)
-    print(y_train.shape)
-
-    train_ids = np.array(f['train_ids'])
-
-    batch_size = 128
-    nb_epoch = 50
-
-    history = History()
-    callbacks = [
-        history,
-    ]
-
-    suffix = 'buildings_3_'
-    model.compile(optimizer=Nadam(lr=1e-3), loss=jaccard_coef_loss, metrics=['binary_crossentropy', jaccard_coef_int])
-    model.fit_generator(
-        batch_generator(X_train, y_train, batch_size, horizontal_flip=True, vertical_flip=True, swap_axis=True),
-        nb_epoch=nb_epoch,
-        verbose=1,
-        samples_per_epoch=batch_size * 400,
-        callbacks=callbacks,
-        nb_worker=8
-    )
-
-    save_model(model, "{batch}_{epoch}_{suffix}".format(batch=batch_size, epoch=nb_epoch, suffix=suffix))
-    save_history(history, suffix)
-
-    f.close()
+import tifffile as tiff
+
+N_split = 4
+
+Patch_size = 224
+crop_size = 288
+edge_size = int((crop_size - Patch_size) / 2)
+Dir = '/home/yokoyang/PycharmProjects/untitled/new_data'
+
+train_img = pd.read_csv(Dir + '/data_imageID.csv')
+
+Image_ID = sorted(train_img.ImageId.unique())
+Scale_Size = Patch_size * N_split
+
+
+def reflect_img(img):
+    reflect = cv2.copyMakeBorder(img, int(edge_size), int(edge_size), int(edge_size), int(edge_size),
+                                 cv2.BORDER_REFLECT)
+    return reflect
+
+
+def get_image(image_id):
+    filename = os.path.join(
+        Dir, 'split-data', '{}.tif'.format(image_id))
+    img = tiff.imread(filename)
+    img = img.astype(np.float32) / 255
+    img_RGB = cv2.resize(img, (Scale_Size, Scale_Size))
+    return img_RGB
+
+
+def get_mask(image_id):
+    filename = os.path.join(
+        Dir, 'general_building', '{}.tif'.format(image_id))
+    msk = tiff.imread(filename)
+    msk = msk.astype(np.float32) / 255
+    msk = cv2.resize(msk, (Scale_Size, Scale_Size))
+    msk_img = np.zeros([Scale_Size, Scale_Size], dtype=np.uint8)
+    msk_img[:, :] = msk[:, :, 1]
+    msk_img ^= 1
+    return msk_img
+
+
+def rotate_img(img, ang, size):
+    rows = size
+    cols = size
+    M = cv2.getRotationMatrix2D((cols / 2, rows / 2), 90 * ang, 1)
+    dst = cv2.warpAffine(img, M, (cols, rows))
+    return dst
+
+
+def rotate_msk(msk, ang):
+    return np.rot90(msk, ang)
+
+
+def get_patch(img_id, pos=1):
+    img_ = []
+    msk_ = []
+    img = get_image(img_id)
+    img = reflect_img(img)
+    mask = get_mask(img_id)
+    for i in range(N_split):
+        for j in range(N_split):
+            y = mask[Patch_size * i:Patch_size * (i + 1), Patch_size * j:Patch_size * (j + 1)]
+            if ((pos == 1) and (np.sum(y) > 0)) or (pos == 0):
+                x_start = int(Patch_size * i)
+                x_end = int(Patch_size * (i + 1) + edge_size * 2)
+                y_start = int(Patch_size * j)
+                y_end = int(Patch_size * (j + 1) + edge_size * 2)
+                x = img[x_start:x_end, y_start:y_end, :]
+                # start rotate y and x
+                rdm = random.uniform(-2, 5)
+                if rdm > 1:
+                    ang = rdm // 1
+                    x = rotate_img(x, ang, crop_size)
+                    y = rotate_msk(y, ang)
+                    # print(x.shape)
+                    # print(y.shape)
+
+                img_.append(x)
+                msk_.append(y[:, :, None])
+
+    return img_, msk_
+
+
+def get_all_patches(pos=1):
+    img_all = []
+    msk_all = []
+    count = 0
+    for img_id in Image_ID:
+        img_, msk_ = get_patch(img_id, pos=pos)
+        if len(msk_) > 0:
+            count = count + 1
+            if count == 1:
+                img_all = img_
+                msk_all = msk_
+            else:
+                img_all = np.concatenate((img_all, img_), axis=0)
+                msk_all = np.concatenate((msk_all, msk_), axis=0)
+
+    # if pos == 1:
+    #     np.save(Dir + '/output/data_pos_%d_%d_class%d' % (crop_size, N_split, Class_Type), img_all)
+    #
+    # else:
+    #     np.save(Dir + '/output/data_%d_%d_class%d' % (crop_size, N_split, Class_Type), img_all)
+
+    return img_all, msk_all[:, :, :, 0]
+
+
+def get_normalized_patches():
+    img_all, msk_all = get_all_patches()
+    #     data = np.load(Dir + '/output/data_pos_%d_%d_class%d.npy' % (Patch_size, N_split, Class_Type))
+    img = img_all
+    msk = msk_all
+    mean = np.mean(img)
+    std = np.std(img)
+    img = (img - mean) / std
+    print(mean, std)
+    # print(np.mean(img), np.std(img))
+    # return img, msk
+
+
+get_normalized_patches()

@@ -3,7 +3,6 @@ import os
 import numpy as np
 import pandas as pd
 import tifffile as tiff
-import cv2
 from skimage import morphology
 
 # water 0,108,255
@@ -48,8 +47,16 @@ dic_class['shadow'] = [255, 1, 255]
 
 tag_name = 'split-mask-data'
 # tag_name = '水体&植被'          water
-class_name = 'playground'
-# class_name = 'bare_land'bare_land
+# class_name = 'water'
+# class_name = 'tree'
+# class_name = 'playground'
+# class_name = 'road'
+# class_name = 'building_yard'
+# class_name = 'bare_land'
+# class_name = 'general_building'
+# class_name = 'countryside'
+# class_name = 'factory'
+class_name = 'shadow'
 
 print(class_name)
 
@@ -66,7 +73,7 @@ def get_mask(img, img_class):
 
 
 # Dir = "/home/yokoyang/PycharmProjects/untitled/new_data"
-Dir = "/home/yokoyang/PycharmProjects/untitled/896_biaozhu"
+Dir = "/home/yokoyang/PycharmProjects/untitled/new_data"
 
 
 def get_files_name(file_dir):

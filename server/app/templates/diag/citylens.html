@@ -5,6 +5,7 @@
     <title>CityLens</title>
     <link rel="stylesheet" href="../static/css/lib/bootstrap.min.css">
 </head>
+<!-- real -->
 <style>
     #map {
         height: 100%;
@@ -53,7 +54,7 @@
         width: 25vw;
         height: 55vh;
         margin-top: 40vh;
-        margin-left: 73vw;
+        margin-left: 77vw;
         box-sizing: content-box;
         pointer-events: none;
         background: rgba(255, 255, 255, 0);
@@ -82,7 +83,7 @@
         height: 45vh;
         /*left: 1420px;*/
         /*margin-top: 40px;*/
-        margin-left: 73vw;
+        margin-left: 76vw;
         /*margin-right: 55vw;*/
         box-sizing: content-box;
         pointer-events: none;
@@ -91,9 +92,9 @@
         border-radius: 5px;
     }
 
-    svg {
-        height: 100%;
-        width: 100%;
+    svg{
+        height:100%;
+        width:100%;
     }
 
     .form-control {
@@ -113,7 +114,7 @@
     }
 
     .custom {
-        width: 11vw;
+        width: 11vw ;
     }
 
     .controls {
@@ -261,7 +262,7 @@
             tilt: 0
         });
 
-        svg = d3.select("#leftdown").append("svg").attr("width", 350).attr("height", 465);
+       svg = d3.select("#leftdown").append("svg").attr("preserveAspectRatio", "xMidYMid meet").attr("viewBox", "0 0 300 300");
 
         svg.append("rect")
             .attr("width", "100%")
@@ -313,24 +314,23 @@
 
         });
 
-        detect = d3.select("#rightpanel").append("svg").attr("width", 350).attr("height", 580);
+        detect = d3.select("#rightpanel").append("svg").attr("preserveAspectRatio", "xMidYMid meet").attr("viewBox", "0 0 500 500");
         detect.append("rect")
             .attr("width", "100%")
             .attr("height", "100%")
             .attr("fill", "pink").style("opacity", 0);
+        var crop = 70
+        d3.select("#rightpanel").select("svg").append("text").attr("x", 0).attr("y", 80).text("Coverage").style('fill', 'white').attr("text-anchor", "left").style("font-size", "20px");
+        d3.select("#rightpanel").select("svg").append("text").attr("x", 0).attr("y", 80+crop*1).text("Diagnosed Area").style('fill', 'white').attr("text-anchor", "left").style("font-size", "20px");
+        d3.select("#rightpanel").select("svg").append("text").attr("x", 0).attr("y", 80+crop*2).text("Detected Area").style('fill', 'white').attr("text-anchor", "left").style("font-size", "20px");
+        var selectTitle = d3.select("#rightpanel").select("svg").append("text").attr("x", 0).attr("y", 80+crop*3).text("Selected Area").style('fill', 'white').attr("text-anchor", "left").style("font-size", "20px");
+        d3.select("#rightpanel").select("svg").append("text").attr("x", 0).attr("y", 80+crop*4).text("Detected Number").style('fill', 'white').attr("text-anchor", "left").style("font-size", "20px");
 
-        d3.select("#rightpanel").select("svg").append("text").attr("x", 0).attr("y", 80).text("Coverage").style('fill', 'white').attr("text-anchor", "left").style("font-size", "16px");
-        d3.select("#rightpanel").select("svg").append("text").attr("x", 0).attr("y", 180).text("Diagnosed Area").style('fill', 'white').attr("text-anchor", "left").style("font-size", "16px");
-        d3.select("#rightpanel").select("svg").append("text").attr("x", 0).attr("y", 280).text("Detected Area").style('fill', 'white').attr("text-anchor", "left").style("font-size", "16px");
-        var selectTitle = d3.select("#rightpanel").select("svg").append("text").attr("x", 0).attr("y", 380).text("Selected Area").style('fill', 'white').attr("text-anchor", "left").style("font-size", "16px");
-        d3.select("#rightpanel").select("svg").append("text").attr("x", 0).attr("y", 480).text("Detected Number").style('fill', 'white').attr("text-anchor", "left").style("font-size", "16px");
-
-
-        var density = d3.select("#rightpanel").select("svg").append("text").attr("x", 0).attr("y", 145).text("").style('fill', 'white').attr("text-anchor", "left").style("font-size", "60px").style("font-weight", "bold");
-        var allarea = d3.select("#rightpanel").select("svg").append("text").attr("x", 0).attr("y", 245).text("").style('fill', 'white').attr("text-anchor", "left").style("font-size", "60px").style("font-weight", "bold");
-        var detectarea = d3.select("#rightpanel").select("svg").append("text").attr("x", 0).attr("y", 345).text("").style('fill', 'white').attr("text-anchor", "left").style("font-size", "60px").style("font-weight", "bold");
-        var sarea = d3.select("#rightpanel").select("svg").append("text").attr("x", 0).attr("y", 445).text("").style('fill', '#ff0000').attr("text-anchor", "left").style("font-size", "60px").style("font-weight", "bold").style("opacity", 0.8);
-        var dnumber = d3.select("#rightpanel").select("svg").append("text").attr("x", 0).attr("y", 545).text("").style('fill', 'white').attr("text-anchor", "left").style("font-size", "60px").style("font-weight", "bold");
+        var density = d3.select("#rightpanel").select("svg").append("text").attr("x", 0).attr("y", 120).text("").style('fill', 'white').attr("text-anchor", "left").style("font-size", "30px").style("font-weight", "bold");
+        var allarea = d3.select("#rightpanel").select("svg").append("text").attr("x", 0).attr("y", 120+crop*1).text("").style('fill', 'white').attr("text-anchor", "left").style("font-size", "30px").style("font-weight", "bold");
+        var detectarea = d3.select("#rightpanel").select("svg").append("text").attr("x", 0).attr("y", 120+crop*2).text("").style('fill', 'white').attr("text-anchor", "left").style("font-size", "30px").style("font-weight", "bold");
+        var sarea = d3.select("#rightpanel").select("svg").append("text").attr("x", 0).attr("y", 120+crop*3).text("").style('fill', '#ff0000').attr("text-anchor", "left").style("font-size", "30px").style("font-weight", "bold").style("opacity", 0.8);
+        var dnumber = d3.select("#rightpanel").select("svg").append("text").attr("x", 0).attr("y", 120+crop*4).text("").style('fill', 'white').attr("text-anchor", "left").style("font-size", "30px").style("font-weight", "bold");
 
 
         var dwidth = 280,
@@ -351,13 +351,12 @@
             .value(function (d) {
                 return d.percentage;
             });
-
         var dsvg = d3.select("#rightup").append("svg")
-            .attr("width", 350)
-            .attr("height", 300)
+            .attr("preserveAspectRatio", "xMidYMid meet")
+            .attr("viewBox", "0 0 350 350")
             .append("g")
             .attr("transform", "translate(" + 350 / 2 + "," + 300 / 2 + ")");
-
+        
 
         data = []
 
@@ -946,6 +945,9 @@
 
 
     $(document).ready(function () {
+        if(document.body.clientHeight < 640 || document.body.clientWidth < 640){
+            document.getElementById('area').style.display = "none";
+        }
         initMap();
 
         var input = document.getElementById('pac-input');

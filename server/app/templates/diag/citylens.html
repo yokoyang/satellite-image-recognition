@@ -522,7 +522,7 @@
                 console.log(zoom, lat, lng, selectType);
                 $.ajax({
                     type: "POST",
-                    url: 'http://120.77.209.29:8080/diag/upload',
+                    url: 'http://120.0.0.1:8080/diag/upload',
                     data: {zoom: zoom, lat: lat, lng: lng, type: selectType},
                     timeout: 60000,
                     success: function (mandata) {

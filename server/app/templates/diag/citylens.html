@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CityLens</title>
+    <link rel="stylesheet" href="../static/css/lib/bootstrap.min.css">
+</head>
+<style>
+    #map {
+        height: 100%;
+    }
+
+    /* Optional: Makes the sample page fill the window. */
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    #area {
+        position: absolute;
+        z-index: 1;
+        width: 640px;
+        height: 640px;
+        margin: auto;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        box-sizing: content-box;
+        border: 1px solid rgba(255, 255, 255, 1);
+        pointer-events: none;
+    }
+
+    #leftpanel {
+        position: absolute;
+        z-index: 1;
+        width: 20vw;
+        height: 10vh;
+        margin-top: 5vh;
+        margin-left: 2vw;
+        box-sizing: content-box;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        border-radius: 5px;
+        background-image: url('../static/img/citylens_logo-02.png');
+        background-size: 20vw 10vh;
+        background-repeat: no-repeat;
+    }
+
+    #rightpanel {
+        position: absolute;
+        z-index: 1;
+        width: 25vw;
+        height: 55vh;
+        margin-top: 40vh;
+        margin-left: 73vw;
+        box-sizing: content-box;
+        pointer-events: none;
+        background: rgba(255, 255, 255, 0);
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        border-radius: 5px;
+    }
+
+    #leftdown {
+        position: absolute;
+        z-index: 1;
+        width: 20vw;
+        height: 40vh;
+        margin-top: 50vh;
+        margin-left: 2vw;
+        box-sizing: content-box;
+        pointer-events: none;
+        background: rgba(255, 255, 255, 0);
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        border-radius: 5px;
+    }
+
+    #rightup {
+        position: absolute;
+        z-index: 1;
+        width: 25vw;
+        height: 45vh;
+        /*left: 1420px;*/
+        /*margin-top: 40px;*/
+        margin-left: 73vw;
+        /*margin-right: 55vw;*/
+        box-sizing: content-box;
+        pointer-events: none;
+        background: rgba(255, 255, 255, 0);
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        border-radius: 5px;
+    }
+
+    svg {
+        height: 100%;
+        width: 100%;
+    }
+
+    .form-control {
+        pointer-events: all;
+    }
+
+    .dropdown {
+        left: 0px;
+        position: absolute;
+        pointer-events: all;
+    }
+
+    .button {
+        position: absolute;
+        left: 12vw;
+        pointer-events: all;
+    }
+
+    .custom {
+        width: 11vw;
+    }
+
+    .controls {
+
+        border: 1px solid transparent;
+        border-radius: 2px 0 0 2px;
+        box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        height: 32px;
+        outline: none;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    #pac-input {
+        background: rgba(255, 255, 255, 0);
+        font-size: 15px;
+        font-weight: 300;
+        width: 20vw;
+        color: white;
+    }
+
+    #pac-input:focus {
+        border-color: #4d90fe;
+    }
+
+    .pac-container {
+        font-family: Roboto;
+    }
+
+    #type-selector {
+        color: #fff;
+        background-color: #4d90fe;
+        padding: 5px 11px 0px 11px;
+    }
+
+    #type-selector label {
+        font-family: Roboto;
+        font-size: 13px;
+        font-weight: 300;
+    }
+
+    .form-control::-webkit-input-placeholder {
+        color: white;
+    }
+
+    /* WebKit, Blink, Edge */
+    .form-control:-moz-placeholder {
+        color: white;
+    }
+
+    /* Mozilla Firefox 4 to 18 */
+    .form-control::-moz-placeholder {
+        color: white;
+    }
+
+    /* Mozilla Firefox 19+ */
+    .form-control:-ms-input-placeholder {
+        color: white;
+    }
+
+    /* Internet Explorer 10-11 */
+    .form-control::-ms-input-placeholder {
+        color: white;
+    }
+
+    /* Microsoft Edge */
+
+    .arc {
+    <!-- stroke: #fff;
+    --> opacity: 0.8;
+
+    }
+
+
+</style>
+<body>
+
+<div id="googleMap" style="height: 100%;width: 100%">
+    <div id="leftpanel" onclick="location.href='http://ciuc.tongji.edu.cn';" style="cursor:pointer;"></div>
+    <div id="leftdown">
+
+        <input type="text" class="form-control input-lg" id="pac-input" aria-describedby="inputGroup-sizing-lg"
+               placeholder="Search City" autofocus="autofocus">
+
+
+    </div>
+    <div id="rightup"></div>
+    <div id="rightpanel">
+        <div class="dropdown">
+            <button class="btn btn-outline-light dropdown-toggle custom" type="button" id="dropdownMenuButton"
+                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Select Type
+            </button>
+            <div class="dropdown-menu" id="dropdownMenu" aria-labelledby="dropdownMenuButton">
+                <li><a class="dropdown-item" href="#">All</a></li>
+                <li><a class="dropdown-item" href="#">Road</a></li>
+                <li><a class="dropdown-item" href="#">General Building</a></li>
+                <li><a class="dropdown-item" href="#">Countryside</a></li>
+                <li><a class="dropdown-item" href="#">Factory</a></li>
+                <li><a class="dropdown-item" href="#">Shadow</a></li>
+                <li><a class="dropdown-item" href="#">Water</a></li>
+                <li><a class="dropdown-item" href="#">Playground</a></li>
+                <li><a class="dropdown-item" href="#">Bare Land</a></li>
+                <li><a class="dropdown-item" href="#">Building Yard</a></li>
+                <li><a class="dropdown-item" href="#">Tree</a></li>
+
+                <!--<li><a class="dropdown-item" href="#">Roundabout</a></li>-->
+            </div>
+        </div>
+        <div class="button">
+            <button class="btn btn-outline-light custom" type="button" id="Button">
+                Diagnose
+            </button>
+        </div>
+    </div>
+
+    <div id="area"></div>
+
+    <div id="map" style="height: 100%; width: 100%"></div>
+</div>
+
+<!--<button id="adjust">Adjust</button>-->
+<!--<button id="html2canvas">Run html2canvas</button>-->
+
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC2d3rWC2rMn53g0tlBowYYd0IHLdVUnMU&libraries=places"></script>
+<script type="text/javascript" src="../static/js/lib/jquery.min.js"></script>
+<script type="text/javascript" src="../static/js/lib/popper.min.js"></script>
+<script type="text/javascript" src="../static/js/lib/bootstrap.min.js"></script>
+<script type="text/javascript" src="../static/js/lib/html2canvas.js"></script>
+<script type="text/javascript" src="../static/js/lib/d3.v3.min.js"></script>
+<script type="text/javascript">
+
+    var map;
+    colors = ['#0ca940', '#ffffff', '#ef9c77', '#691197', '#305dfe', '#ff01ff', '#30fefe',
+        '#e31721', '#f9ff19', '#6F6F6F'];
+    classes = ['tree', 'building_yard', 'bare_land', 'playground', 'water', 'shadow', 'factory', 'countryside', 'general_building', 'road'];
+
+    function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: {lat: 31.284091, lng: 121.503364},
+            zoom: 18,
+            disableDefaultUI: true,
+            mapTypeId: 'satellite',
+            tilt: 0
+        });
+
+        svg = d3.select("#leftdown").append("svg").attr("width", 350).attr("height", 465);
+
+        svg.append("rect")
+            .attr("width", "100%")
+            .attr("height", "100%")
+            .attr("fill", "pink").style("opacity", 0);
+
+        d3.select("#leftdown").select("svg").append("text").attr("x", 0).attr("y", 80 - 35).text("Latitude").style('fill', 'white').attr("text-anchor", "left").style("font-size", "16px");
+        d3.select("#leftdown").select("svg").append("text").attr("x", 0).attr("y", 180 - 35).text("Longitude").style('fill', 'white').attr("text-anchor", "left").style("font-size", "16px");
+
+        var latitude = d3.select("#leftdown").select("svg").append("text").attr("x", 0).attr("y", 80 - 35 + 65).text(parseFloat(map.getCenter().lat().toFixed(4))).style('fill', 'white').attr("text-anchor", "left").style("font-size", "48px");
+        var longitude = d3.select("#leftdown").select("svg").append("text").attr("x", 0).attr("y", 180 - 35 + 65).text(parseFloat(map.getCenter().lng().toFixed(4))).style('fill', 'white').attr("text-anchor", "left").style("font-size", "48px");
+
+        latlng = map.getCenter();
+        lat = latlng.lat();
+        lng = latlng.lng();
+        zoom = map.getZoom();
+
+        map.addListener('center_changed', function () {
+
+
+            $('#dropdownMenuButton').html('All');
+
+            var i;
+            for (i = 0; i < classes.length; i++) {
+
+                if (typeof  window[classes[i] + 'Layer'] !== 'undefined') {
+                    window[classes[i] + 'Layer'].setMap(null);
+                }
+            }
+
+
+            g = g.data(pie(data));
+            g.transition().duration(750).attrTween("d", arcTween);
+
+
+            latitude.transition().text(parseFloat(map.getCenter().lat().toFixed(4)));
+            longitude.transition().text(parseFloat(map.getCenter().lng().toFixed(4)));
+
+            latlng = map.getCenter();
+            lat = latlng.lat();
+            lng = latlng.lng();
+            zoom = map.getZoom();
+            allarea.transition().text("");
+            dnumber.transition().text("");
+            detectarea.transition().text("");
+            density.transition().text("");
+            sarea.transition().text("");
+
+
+        });
+
+        detect = d3.select("#rightpanel").append("svg").attr("width", 350).attr("height", 580);
+        detect.append("rect")
+            .attr("width", "100%")
+            .attr("height", "100%")
+            .attr("fill", "pink").style("opacity", 0);
+
+        d3.select("#rightpanel").select("svg").append("text").attr("x", 0).attr("y", 80).text("Coverage").style('fill', 'white').attr("text-anchor", "left").style("font-size", "16px");
+        d3.select("#rightpanel").select("svg").append("text").attr("x", 0).attr("y", 180).text("Diagnosed Area").style('fill', 'white').attr("text-anchor", "left").style("font-size", "16px");
+        d3.select("#rightpanel").select("svg").append("text").attr("x", 0).attr("y", 280).text("Detected Area").style('fill', 'white').attr("text-anchor", "left").style("font-size", "16px");
+        var selectTitle = d3.select("#rightpanel").select("svg").append("text").attr("x", 0).attr("y", 380).text("Selected Area").style('fill', 'white').attr("text-anchor", "left").style("font-size", "16px");
+        d3.select("#rightpanel").select("svg").append("text").attr("x", 0).attr("y", 480).text("Detected Number").style('fill', 'white').attr("text-anchor", "left").style("font-size", "16px");
+
+
+        var density = d3.select("#rightpanel").select("svg").append("text").attr("x", 0).attr("y", 145).text("").style('fill', 'white').attr("text-anchor", "left").style("font-size", "60px").style("font-weight", "bold");
+        var allarea = d3.select("#rightpanel").select("svg").append("text").attr("x", 0).attr("y", 245).text("").style('fill', 'white').attr("text-anchor", "left").style("font-size", "60px").style("font-weight", "bold");
+        var detectarea = d3.select("#rightpanel").select("svg").append("text").attr("x", 0).attr("y", 345).text("").style('fill', 'white').attr("text-anchor", "left").style("font-size", "60px").style("font-weight", "bold");
+        var sarea = d3.select("#rightpanel").select("svg").append("text").attr("x", 0).attr("y", 445).text("").style('fill', '#ff0000').attr("text-anchor", "left").style("font-size", "60px").style("font-weight", "bold").style("opacity", 0.8);
+        var dnumber = d3.select("#rightpanel").select("svg").append("text").attr("x", 0).attr("y", 545).text("").style('fill', 'white').attr("text-anchor", "left").style("font-size", "60px").style("font-weight", "bold");
+
+
+        var dwidth = 280,
+            dheight = 280,
+            radius = Math.min(dwidth, dheight) / 2;
+
+
+        var color = ['#0ca940', '#ffffff', '#ef9c77', '#691197', '#305dfe', '#ff01ff', '#30fefe',
+            '#e31721', '#f9ff19', '#6F6F6F', 'None'];
+
+        arc = d3.svg.arc()
+            .outerRadius(radius - 10)
+            .innerRadius(radius - 50)
+            .padAngle(0.02);
+
+        var pie = d3.layout.pie()
+            .sort(null)
+            .value(function (d) {
+                return d.percentage;
+            });
+
+        var dsvg = d3.select("#rightup").append("svg")
+            .attr("width", 350)
+            .attr("height", 300)
+            .append("g")
+            .attr("transform", "translate(" + 350 / 2 + "," + 300 / 2 + ")");
+
+
+        data = []
+
+        for (i = 0; i < classes.length; i++) {
+            data.push({'percentage': 0, 'label': classes[i]})
+        }
+        data.push({'percentage': 100, 'label': 'nothing'})
+
+        g = dsvg.selectAll("path")
+            .data(pie(data))
+            .enter().append("path")
+            .attr("fill", function (d, i) {
+                return color[i];
+            })
+            .style("stroke", "white")
+            .attr("class", function (d, i) {
+                return "arc " + classes[i]
+            })
+            .attr("d", arc)
+            .each(function (d) {
+                this._current = d;
+            });
+
+
+        $('.dropdown-toggle').dropdown();
+        $('#dropdownMenuButton').html('All');
+
+        $('#dropdownMenu li').on('click', function () {
+            $('#dropdownMenuButton').html($(this).find('a').html());
+
+            titleText = $(this).find('a').html().toLowerCase().replace(' ', '_');
+
+
+            if (titleText === 'all') {
+                var i;
+                for (i = 0; i < classes.length; i++) {
+
+                    if (typeof  window[classes[i] + 'Layer'] !== 'undefined') {
+                        try {
+                            window[classes[i] + 'Layer'].setMap(map);
+                        }
+                        catch (e) {
+                        }
+                    }
+                }
+            }
+            else {
+
+                var i;
+                for (i = 0; i < classes.length; i++) {
+
+                    if (classes[i] !== titleText) {
+                        try {
+                            window[classes[i] + 'Layer'].setMap(null);
+                        }
+                        catch (e) {
+                        }
+                    }
+                    else {
+                        try {
+                            window[classes[i] + 'Layer'].setMap(map);
+                        }
+                        catch (e) {
+                        }
+                    }
+                }
+
+            }
+
+            <!--allarea.transition().text(toords['all']['aarea'] + " km²");-->
+            dnumber.transition().text(toords[titleText]['number']);
+            detectarea.transition().text(parseFloat(Math.round(toords[titleText]['area'] * 0.000001 * 100) / 100).toFixed(2) + " km²");
+            density.transition().text(toords[titleText]['percentage'] + "%");
+
+
+            var i;
+            for (i = 0; i < classes.length; i++) {
+                d3.selectAll(".arc").filter("." + classes[i]).transition().style('stroke', 'white').style('stroke-width', 1);
+            }
+            d3.selectAll(".arc").filter("." + titleText).transition().style('stroke', '#ff0000').style('stroke-width', 3);
+
+
+        });
+
+        $('#Button').on('click', function (event) {
+
+
+            g = g.data(pie(data));
+            g.transition().duration(750).attrTween("d", arcTween);
+
+            d3.selectAll(".arc").transition().style('stroke', 'white').style('stroke-width', 1);
+
+            allarea.transition().text("");
+            dnumber.transition().text("");
+            detectarea.transition().text("");
+            density.transition().text("");
+
+
+            latlng = map.getCenter();
+            lat = latlng.lat();
+            lng = latlng.lng();
+            zoom = map.getZoom();
+
+            var i;
+            for (i = 0; i < classes.length; i++) {
+
+                if (typeof  window[classes[i] + 'Layer'] !== 'undefined') {
+                    try {
+                        window[classes[i] + 'Layer'].setMap(null);
+                    }
+                    catch (e) {
+                    }
+                }
+            }
+
+
+            var selectType = $('#dropdownMenuButton').text();
+
+            if (typeof clatlng === 'undefined') {
+                clatlng = map.getCenter();
+                clat = clatlng.lat();
+                clng = clatlng.lng();
+                czoom = map.getZoom();
+            }
+
+            var scaleBy = 5;
+            var w = 640;
+            var h = 640;
+            div = document.querySelector("#area");
+            canvas = document.createElement('canvas');
+            canvas.width = w * scaleBy;
+            canvas.height = h * scaleBy;
+            canvas.style.width = w + 'px';
+            canvas.style.height = h + 'px';
+            context = canvas.getContext('2d');
+            context.scale(scaleBy, scaleBy);
+            html2canvas(div, {
+                canvas: canvas,
+                useCORS: true,
+                foreignObjectRendering: true,
+                allowTaint: false
+            }).then(function (canvas) {
+
+                if (clat === lat && clng === lng && czoom === zoom && typeof myImage == 'undefined') {
+                    myImage = canvas.toDataURL("image/jpeg");
+                    oldImage = myImage;
+                }
+                if (clat === lat && clng === lng && czoom === zoom && typeof myImage !== 'undefined') {
+
+                    myImage = oldImage;
+                }
+                if (clat !== lat || clng !== lng || czoom !== zoom) {
+                    myImage = canvas.toDataURL("image/jpeg");
+                    oldImage = myImage;
+                    clatlng = map.getCenter();
+                    clat = clatlng.lat();
+                    clng = clatlng.lng();
+                    czoom = map.getZoom();
+
+                }
+
+                console.log(zoom, lat, lng, selectType);
+                $.ajax({
+                    type: "POST",
+                    url: 'http://120.77.209.29:8080/diag/upload',
+                    data: {zoom: zoom, lat: lat, lng: lng, type: selectType},
+                    timeout: 60000,
+                    success: function (mandata) {
+
+
+                        toords = JSON.parse(mandata);
+                        console.log(toords);
+
+                        <!---->
+                        <!--var i;-->
+                        <!--for (i =0; i<colors.length; i++){-->
+
+                        <!--layers[classes[i]] = {}-->
+                        <!--layers[classes[i]]['data'] = toords[classes[i]]['gdata'];-->
+                        <!--layers[classes[i]]['color'] = colors[i];-->
+                        <!--layers[classes[i]]['layer'] = new google.maps.Data({map:map});-->
+                        <!--layers[classes[i]]['layer'].addGeoJson(layers[classes[i]]['data']);-->
+
+                        <!--layers[classes[i]]['layer'].setStyle({-->
+                        <!--strokeColor: layers[classes[i]]['color'],-->
+                        <!--strokeOpacity: 0.8,-->
+                        <!--strokeWeight: 2,-->
+                        <!--fillColor: layers[classes[i]]['color'],-->
+                        <!--fillOpacity: 0.35-->
+                        <!--});-->
+
+                        <!--newobject = layers[classes[i]]['layer'];-->
+
+                        <!--google.maps.event.addListener(newobject, 'mouseover', function(event){-->
+                        <!--console.log(event.feature);-->
+                        <!--numbers = event.feature['f'];-->
+                        <!--sarea.transition().text(numbers['area'] + " m²");-->
+                        <!--newobject.overrideStyle(event.feature, {fillColor: '#FF0000', strokeColor: '#FF0000'});-->
+
+                        <!--});-->
+
+                        <!--currentC = colors[i];-->
+                        <!--window['maker' + i] = currentC;-->
+
+                        <!--google.maps.event.addListener(newobject, 'mouseout', function(event){-->
+                        <!--sarea.transition().text("");-->
+                        <!--newobject.overrideStyle(event.feature, {fillColor: currentC, strokeColor: currentC});-->
+
+                        <!--});-->
+
+                        <!--}-->
+
+
+                        <!--layers[classes[i]] = {}-->
+
+
+                        newData = [];
+                        var total = 0;
+                        for (i = 0; i < classes.length; i++) {
+                            newData.push({'percentage': toords[classes[i]]['percentage'], 'label': classes[i]});
+                            total += toords[classes[i]]['percentage'];
+                        }
+
+                        newData.push({'percentage': 100 - total, 'label': 'nothing'});
+                        console.log(newData);
+
+                        g = g.data(pie(newData));
+                        g.transition().duration(750).attrTween("d", arcTween);
+
+                        <!--var i;-->
+                        <!--for (i =0; i< classes.length; i++){-->
+                        <!--d3.selectAll(".arc").filter("." + classes[i]).transition().style('stroke', 'white');-->
+                        <!--}-->
+
+                        <!--var i;-->
+                        <!--for (i =0; i< classes.length; i++){-->
+                        <!--d3.selectAll(".arc").filter("." + classes[i]).transition().style('stroke', 'white').style('stroke-width', 1);-->
+                        <!--}-->
+
+                        treeData = toords[classes[0]]['gdata'];
+                        treeColor = colors[0];
+                        treeLayer = new google.maps.Data({map: map});
+                        treeLayer.addGeoJson(treeData);
+
+                        treeLayer.setStyle({
+                            strokeColor: treeColor,
+                            strokeOpacity: 0.8,
+                            strokeWeight: 2,
+                            fillColor: treeColor,
+                            fillOpacity: 0.35
+                        });
+
+                        google.maps.event.addListener(treeLayer, 'mouseover', function (event) {
+                            numbers = event.feature['f'];
+                            sarea.transition().text(numbers['area'] + " m²");
+                            treeLayer.overrideStyle(event.feature, {fillColor: '#FF0000', strokeColor: '#FF0000'});
+                            selectTitle.transition().text("Tree").style('fill', '#FF0000');
+
+                        });
+
+                        google.maps.event.addListener(treeLayer, 'mouseout', function (event) {
+                            sarea.transition().text("");
+                            treeLayer.overrideStyle(event.feature, {fillColor: treeColor, strokeColor: treeColor});
+                            selectTitle.transition().text("Selected Area").style('fill', 'white');
+
+                        });
+
+
+                        building_yardData = toords[classes[1]]['gdata'];
+                        building_yardColor = colors[1];
+                        building_yardLayer = new google.maps.Data({map: map});
+                        building_yardLayer.addGeoJson(building_yardData);
+
+                        building_yardLayer.setStyle({
+                            strokeColor: building_yardColor,
+                            strokeOpacity: 0.8,
+                            strokeWeight: 2,
+                            fillColor: building_yardColor,
+                            fillOpacity: 0.35
+                        });
+
+                        google.maps.event.addListener(building_yardLayer, 'mouseover', function (event) {
+                            numbers = event.feature['f'];
+                            sarea.transition().text(numbers['area'] + " m²");
+                            building_yardLayer.overrideStyle(event.feature, {
+                                fillColor: '#FF0000',
+                                strokeColor: '#FF0000'
+                            });
+                            selectTitle.transition().text("Building Yard").style('fill', '#FF0000');
+
+                        });
+
+                        google.maps.event.addListener(building_yardLayer, 'mouseout', function (event) {
+                            sarea.transition().text("");
+                            building_yardLayer.overrideStyle(event.feature, {
+                                fillColor: building_yardColor,
+                                strokeColor: building_yardColor
+                            });
+                            selectTitle.transition().text("Selected Area").style('fill', 'white');
+                        });
+
+
+                        bare_landData = toords[classes[2]]['gdata'];
+                        bare_landColor = colors[2];
+                        bare_landLayer = new google.maps.Data({map: map});
+                        bare_landLayer.addGeoJson(bare_landData);
+
+                        bare_landLayer.setStyle({
+                            strokeColor: bare_landColor,
+                            strokeOpacity: 0.8,
+                            strokeWeight: 2,
+                            fillColor: bare_landColor,
+                            fillOpacity: 0.35
+                        });
+
+                        google.maps.event.addListener(bare_landLayer, 'mouseover', function (event) {
+                            numbers = event.feature['f'];
+                            sarea.transition().text(numbers['area'] + " m²");
+                            bare_landLayer.overrideStyle(event.feature, {fillColor: '#FF0000', strokeColor: '#FF0000'});
+                            selectTitle.transition().text("Bare Land").style('fill', '#FF0000');
+
+                        });
+
+                        google.maps.event.addListener(bare_landLayer, 'mouseout', function (event) {
+                            sarea.transition().text("");
+                            bare_landLayer.overrideStyle(event.feature, {
+                                fillColor: bare_landColor,
+                                strokeColor: bare_landColor
+                            });
+                            selectTitle.transition().text("Selected Area").style('fill', 'white');
+
+                        });
+
+
+                        playgroundData = toords[classes[3]]['gdata'];
+                        playgroundColor = colors[3];
+                        playgroundLayer = new google.maps.Data({map: map});
+                        playgroundLayer.addGeoJson(playgroundData);
+
+                        playgroundLayer.setStyle({
+                            strokeColor: playgroundColor,
+                            strokeOpacity: 0.8,
+                            strokeWeight: 2,
+                            fillColor: playgroundColor,
+                            fillOpacity: 0.35
+                        });
+
+                        google.maps.event.addListener(playgroundLayer, 'mouseover', function (event) {
+                            numbers = event.feature['f'];
+                            sarea.transition().text(numbers['area'] + " m²");
+                            playgroundLayer.overrideStyle(event.feature, {
+                                fillColor: '#FF0000',
+                                strokeColor: '#FF0000'
+                            });
+                            selectTitle.transition().text("Playground").style('fill', '#FF0000');
+
+                        });
+
+                        google.maps.event.addListener(playgroundLayer, 'mouseout', function (event) {
+                            sarea.transition().text("");
+                            playgroundLayer.overrideStyle(event.feature, {
+                                fillColor: playgroundColor,
+                                strokeColor: playgroundColor
+                            });
+                            selectTitle.transition().text("Selected Area").style('fill', 'white');
+
+                        });
+
+
+                        waterData = toords[classes[4]]['gdata'];
+                        waterColor = colors[4];
+                        waterLayer = new google.maps.Data({map: map});
+                        waterLayer.addGeoJson(waterData);
+
+                        waterLayer.setStyle({
+                            strokeColor: waterColor,
+                            strokeOpacity: 0.8,
+                            strokeWeight: 2,
+                            fillColor: waterColor,
+                            fillOpacity: 0.35
+                        });
+
+                        google.maps.event.addListener(waterLayer, 'mouseover', function (event) {
+                            numbers = event.feature['f'];
+                            sarea.transition().text(numbers['area'] + " m²");
+                            waterLayer.overrideStyle(event.feature, {fillColor: '#FF0000', strokeColor: '#FF0000'});
+                            selectTitle.transition().text("Water").style('fill', '#FF0000');
+
+                        });
+
+                        google.maps.event.addListener(waterLayer, 'mouseout', function (event) {
+                            sarea.transition().text("");
+                            waterLayer.overrideStyle(event.feature, {fillColor: waterColor, strokeColor: waterColor});
+                            selectTitle.transition().text("Selected Area").style('fill', 'white');
+
+                        });
+
+
+                        shadowData = toords[classes[5]]['gdata'];
+                        shadowColor = colors[5];
+                        shadowLayer = new google.maps.Data({map: map});
+                        shadowLayer.addGeoJson(shadowData);
+
+                        shadowLayer.setStyle({
+                            strokeColor: shadowColor,
+                            strokeOpacity: 0.8,
+                            strokeWeight: 2,
+                            fillColor: shadowColor,
+                            fillOpacity: 0.35
+                        });
+
+                        google.maps.event.addListener(shadowLayer, 'mouseover', function (event) {
+                            numbers = event.feature['f'];
+                            sarea.transition().text(numbers['area'] + " m²");
+                            shadowLayer.overrideStyle(event.feature, {fillColor: '#FF0000', strokeColor: '#FF0000'});
+                            selectTitle.transition().text("Shadow").style('fill', '#FF0000');
+                        });
+
+                        google.maps.event.addListener(shadowLayer, 'mouseout', function (event) {
+                            sarea.transition().text("");
+                            shadowLayer.overrideStyle(event.feature, {
+                                fillColor: shadowColor,
+                                strokeColor: shadowColor
+                            });
+                            selectTitle.transition().text("Selected Area").style('fill', 'white');
+
+                        });
+
+
+                        factoryData = toords[classes[6]]['gdata'];
+                        factoryColor = colors[6];
+                        factoryLayer = new google.maps.Data({map: map});
+                        factoryLayer.addGeoJson(factoryData);
+
+                        factoryLayer.setStyle({
+                            strokeColor: factoryColor,
+                            strokeOpacity: 0.8,
+                            strokeWeight: 2,
+                            fillColor: factoryColor,
+                            fillOpacity: 0.35
+                        });
+
+                        google.maps.event.addListener(factoryLayer, 'mouseover', function (event) {
+                            numbers = event.feature['f'];
+                            sarea.transition().text(numbers['area'] + " m²");
+                            factoryLayer.overrideStyle(event.feature, {fillColor: '#FF0000', strokeColor: '#FF0000'});
+                            selectTitle.transition().text("Factory").style('fill', '#FF0000');
+
+                        });
+
+                        google.maps.event.addListener(factoryLayer, 'mouseout', function (event) {
+                            sarea.transition().text("");
+                            factoryLayer.overrideStyle(event.feature, {
+                                fillColor: factoryColor,
+                                strokeColor: factoryColor
+                            });
+                            selectTitle.transition().text("Selected Area").style('fill', 'white');
+
+                        });
+
+
+                        countrysideData = toords[classes[7]]['gdata'];
+                        countrysideColor = colors[7];
+                        countrysideLayer = new google.maps.Data({map: map});
+                        countrysideLayer.addGeoJson(countrysideData);
+
+                        countrysideLayer.setStyle({
+                            strokeColor: countrysideColor,
+                            strokeOpacity: 0.8,
+                            strokeWeight: 2,
+                            fillColor: countrysideColor,
+                            fillOpacity: 0.35
+                        });
+
+                        google.maps.event.addListener(countrysideLayer, 'mouseover', function (event) {
+                            numbers = event.feature['f'];
+                            sarea.transition().text(numbers['area'] + " m²");
+                            countrysideLayer.overrideStyle(event.feature, {
+                                fillColor: '#FF0000',
+                                strokeColor: '#FF0000'
+                            });
+                            selectTitle.transition().text("Countryside").style('fill', '#FF0000');
+
+                        });
+
+                        google.maps.event.addListener(countrysideLayer, 'mouseout', function (event) {
+                            sarea.transition().text("");
+                            countrysideLayer.overrideStyle(event.feature, {
+                                fillColor: countrysideColor,
+                                strokeColor: countrysideColor
+                            });
+                            selectTitle.transition().text("Selected Area").style('fill', 'white');
+
+                        });
+
+
+                        general_buildingData = toords[classes[8]]['gdata'];
+                        general_buildingColor = colors[8];
+                        general_buildingLayer = new google.maps.Data({map: map});
+                        general_buildingLayer.addGeoJson(general_buildingData);
+
+                        general_buildingLayer.setStyle({
+                            strokeColor: general_buildingColor,
+                            strokeOpacity: 0.8,
+                            strokeWeight: 2,
+                            fillColor: general_buildingColor,
+                            fillOpacity: 0.35
+                        });
+
+                        google.maps.event.addListener(general_buildingLayer, 'mouseover', function (event) {
+                            numbers = event.feature['f'];
+                            sarea.transition().text(numbers['area'] + " m²");
+                            general_buildingLayer.overrideStyle(event.feature, {
+                                fillColor: '#FF0000',
+                                strokeColor: '#FF0000'
+                            });
+                            selectTitle.transition().text("General Building").style('fill', '#FF0000');
+
+                        });
+
+                        google.maps.event.addListener(general_buildingLayer, 'mouseout', function (event) {
+                            sarea.transition().text("");
+                            general_buildingLayer.overrideStyle(event.feature, {
+                                fillColor: general_buildingColor,
+                                strokeColor: general_buildingColor
+                            });
+                            selectTitle.transition().text("Selected Area").style('fill', 'white');
+
+                        });
+
+
+                        roadData = toords[classes[9]]['gdata'];
+                        roadColor = colors[9];
+                        roadLayer = new google.maps.Data({map: map});
+                        roadLayer.addGeoJson(roadData);
+
+                        roadLayer.setStyle({
+                            strokeColor: roadColor,
+                            strokeOpacity: 0.8,
+                            strokeWeight: 2,
+                            fillColor: roadColor,
+                            fillOpacity: 0.35
+                        });
+
+                        google.maps.event.addListener(roadLayer, 'mouseover', function (event) {
+                            numbers = event.feature['f'];
+                            sarea.transition().text(numbers['area'] + " m²");
+                            roadLayer.overrideStyle(event.feature, {fillColor: '#FF0000', strokeColor: '#FF0000'});
+                            selectTitle.transition().text("Road").style('fill', '#FF0000');
+                        });
+
+                        google.maps.event.addListener(roadLayer, 'mouseout', function (event) {
+                            sarea.transition().text("");
+                            roadLayer.overrideStyle(event.feature, {fillColor: roadColor, strokeColor: roadColor});
+                            selectTitle.transition().text("Selected Area").style('fill', 'white');
+
+                        });
+
+
+                        <!--var i;-->
+                        <!--for (i =0; i< classes.length; i++){-->
+                        <!--d3.selectAll(".arc").filter("." + classes[i]).transition().style('fill', colors[i]).style('stroke', 'white');-->
+                        <!--}-->
+
+
+                        allarea.transition().text(toords['all']['aarea'] + " km²");
+                        dnumber.transition().text(toords['all']['number']);
+                        detectarea.transition().text(parseFloat(Math.round(toords['all']['area'] * 0.000001 * 100) / 100).toFixed(2) + " km²");
+                        density.transition().text(toords['all']['percentage'] + "%");
+
+
+                    }
+                })
+            });
+        });
+    }
+
+
+    function arcTween(a) {
+        var i = d3.interpolate(this._current, a);
+        this._current = i(0);
+        return function (t) {
+            return arc(i(t));
+        };
+    }
+
+
+    $(document).ready(function () {
+        initMap();
+
+        var input = document.getElementById('pac-input');
+        var searchBox = new google.maps.places.SearchBox(input);
+        // Bias the SearchBox results towards current map's viewport.
+        map.addListener('bounds_changed', function () {
+            searchBox.setBounds(map.getBounds());
+        });
+        // Listen for the event fired when the user selects a prediction and retrieve
+        // more details for that place.
+        searchBox.addListener('places_changed', function () {
+            var places = searchBox.getPlaces();
+
+            if (places.length == 0) {
+                return;
+            }
+            // For each place, get the icon, name and location.
+            var bounds = new google.maps.LatLngBounds();
+            places.forEach(function (place) {
+                if (!place.geometry) {
+                    console.log("Returned place contains no geometry");
+                    return;
+                }
+                // Create a marker for each place.
+                if (place.geometry.viewport) {
+                    // Only geocodes have viewport.
+                    bounds.union(place.geometry.viewport);
+                } else {
+                    bounds.extend(place.geometry.location);
+                }
+            });
+            map.fitBounds(bounds);
+            map.setZoom(18);
+        });
+
+    });
+
+
+</script>
+
+</body>
+</html>

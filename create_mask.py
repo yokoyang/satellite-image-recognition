@@ -46,7 +46,6 @@ dic_class['shadow'] = [255, 1, 255]
 # 建筑场地&裸地
 
 tag_name = 'split-mask-data'
-# tag_name = '水体&植被'          water
 # class_name = 'water'
 # class_name = 'tree'
 # class_name = 'playground'
@@ -73,7 +72,7 @@ def get_mask(img, img_class):
 
 
 # Dir = "/home/yokoyang/PycharmProjects/untitled/new_data"
-Dir = "/home/yokoyang/PycharmProjects/untitled/new_data"
+Dir = "/home/yokoyang/PycharmProjects/untitled/640_biaozhu"
 
 
 def get_files_name(file_dir):

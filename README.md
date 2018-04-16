@@ -11,7 +11,7 @@ satellite image recognition using U-Net model
 
 ## Data source
 
-Get data from Google satellite map, and then labeled and splite. Then model is based on  $ 254 * (160px*160px*3) $ RGB images data.
+Get data from Google satellite map, and then labeled and splite. Then model is based on  54 * (160px*160px*3) RGB images data.
 
 ## train
 
